@@ -40,6 +40,36 @@ installed so that it can be used to prepare RISCV binaries to run.
 1. Determine your configuration {optional}
 1. Run make with tools/Makefile
 
+### RISC-V GNU Toolchain with Galois Field instructions
+
+1. Clone the [RISC-V GNU toolchain repository](https://github.com/riscv/riscv-gnu-toolchain.git) and follow the instructions to install the toolchain.
+2. Build the toolchain.
+3. Modify [riscv-opc.c](https://github.com/riscv/riscv-binutils-gdb/blob/riscv-binutils-2.36.1/opcodes/riscv-opc.c) and [riscv-opc.h](https://github.com/riscv/riscv-binutils-gdb/blob/riscv-binutils-2.36.1/include/opcode/riscv-opc.h) files for binutils and gdb inside the repository cloned in step 1. 
+   
+    - Add the following lines in the define section of **riscv-opc.h**. 
+    ```c
+        #define MATCH_CLMUL 0xa001033
+        #define MASK_CLMUL  0xfe00707fL
+        #define MATCH_CLMULH 0xa003033
+        #define MASK_CLMULH  0xfe00707fL
+        #define MATCH_CLMULR 0xa002033
+        #define MASK_CLMULR  0xfe00707fL
+        #define MATCH_FFWIDTH 0xe000033
+        #define MASK_FFWIDTH  0xfe00707fL
+        #define MATCH_FFRED 0xe001033
+        #define MASK_FFRED  0xfe00707fL
+    ```
+    - Add the following riscv_opcodes struct inside **riscv-opc.c**
+    ```c
+        {"clmul",       0, INSN_CLASS_I,   "d,s,t",  MATCH_CLMUL, MASK_CLMUL, match_opcode, 0 },
+        {"clmulh",      0, INSN_CLASS_I,   "d,s,t",  MATCH_CLMULH, MASK_CLMULH, match_opcode, 0 },
+        {"clmulr",      0, INSN_CLASS_I,   "d,s,t",  MATCH_CLMULR, MASK_CLMULR, match_opcode, 0 },
+        {"ffwidth",     0, INSN_CLASS_I,   "d,s,t",  MATCH_FFWIDTH, MASK_FFWIDTH, match_opcode, 0 },
+        {"ffred",       0, INSN_CLASS_I,   "d,s,t",  MATCH_FFRED, MASK_FFRED, match_opcode, 0 },
+    ```
+  
+4. make && make install (inside the binutils and/or gdb build directory).
+
 ## Release Notes for this version
 Please see [release notes](release-notes.md) for changes and bug fixes in this version of SweRV
 
