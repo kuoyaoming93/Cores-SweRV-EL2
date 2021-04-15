@@ -314,7 +314,7 @@ endfunction
 
 function string dasm32_ar( input[31:0] opcode);
 string mn;
-    if(opcode[25])
+    if(opcode[31:25]==1)
         case(opcode[14:12])
         0: mn = "mul";
         1: mn = "mulh";
@@ -324,6 +324,17 @@ string mn;
         5: mn = "divu";
         6: mn = "rem";
         7: mn = "remu";
+        endcase
+    else if(opcode[31:25]==5)
+        case(opcode[14:12])
+        1: mn = "clmul";
+        2: mn = "clmulr";
+        3: mn = "clmulh";
+        endcase
+    else if(opcode[31:25]==7)
+        case(opcode[14:12])
+        0: mn = "ffwidth";
+        1: mn = "ffred";
         endcase
     else
         case(opcode[14:12])

@@ -29,6 +29,12 @@ filesets:
       - design/exu/el2_exu_mul_ctl.sv
       - design/exu/el2_exu_div_ctl.sv
       - design/exu/el2_exu.sv
+      - design/exu/cl_modules/bit_order_inversion.v
+      - design/exu/cl_modules/cl_full_adder.v
+      - design/exu/cl_modules/cl_half_adder.v 
+      - design/exu/cl_modules/cl_modules.v 
+      - design/exu/cl_modules/cl_rca_adder.v 
+      - design/exu/cl_modules/partial_mult.v 
       - design/lsu/el2_lsu.sv
       - design/lsu/el2_lsu_bus_buffer.sv
       - design/lsu/el2_lsu_clkdomain.sv

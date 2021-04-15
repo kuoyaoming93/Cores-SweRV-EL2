@@ -137,10 +137,6 @@ crc32c_w  =  [011000011010.....001.....0010011]
 
 bfp       =  [0100100..........111.....0110011]
 
-
-
-
-
 add       =  [0000000..........000.....0110011]
 addi      =  [.................000.....0010011]
 
@@ -256,6 +252,9 @@ divu =       [0000001..........101.....0110011]
 rem =        [0000001..........110.....0110011]
 remu =       [0000001..........111.....0110011]
 
+ffwidth   =  [0000111..........000.....0110011]
+ffred   =    [0000111..........001.....0110011]
+
 
 .input
 
@@ -298,6 +297,8 @@ rv32i = {
 .output
 
 rv32i = {
+      ffwidth
+      ffred
       alu
       rs1
       rs2
@@ -373,6 +374,7 @@ rv32i = {
       clmulh
       clmulr
       zbc
+      zbg
       grev
       gorc
       shfl
@@ -439,6 +441,9 @@ rv32i[bdep]      =  { mul zbe     rs1 rs2 rd                       bdep  }
 rv32i[clmul]     =  { mul zbc     rs1 rs2 rd                       clmul }
 rv32i[clmulh]    =  { mul zbc     rs1 rs2 rd                       clmulh}
 rv32i[clmulr]    =  { mul zbc     rs1 rs2 rd                       clmulr}
+
+rv32i[ffwidth]   =  { mul zbg     rs1 rs2 rd                       ffwidth}
+rv32i[ffred]     =  { mul zbg     rs1 rs2 rd                       ffred}
 
 rv32i[crc32_b]   =  { mul zbr     rs1     rd                       crc32_b}
 rv32i[crc32_h]   =  { mul zbr     rs1     rd                       crc32_h}
