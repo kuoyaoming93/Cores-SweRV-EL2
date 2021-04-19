@@ -104,7 +104,7 @@ module cl_modules #(
     genvar j;
     generate
         for (j = 0; j < DATA_WIDTH-1; j = j + 1) begin
-            cl_rca_adder #(DATA_WIDTH) adder0(
+            cl_cla_adder #(DATA_WIDTH) adder0(
                 .carry_option(carry_option),
                 .a(a_sum[j][0 +: DATA_WIDTH]),
                 .b(b_sum[j][0 +: DATA_WIDTH]),

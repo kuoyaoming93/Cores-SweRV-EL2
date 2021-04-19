@@ -46,8 +46,7 @@ $RV_ROOT/design/lib/el2_lib.sv
 -y $RV_ROOT/design/lib
 -v $RV_ROOT/testbench/axi_lsu_dma_bridge.sv
 $RV_ROOT/design/exu/cl_modules/cl_modules.v
-$RV_ROOT/design/exu/cl_modules/cl_half_adder.v
-$RV_ROOT/design/exu/cl_modules/cl_full_adder.v
-$RV_ROOT/design/exu/cl_modules/cl_rca_adder.v
+$RV_ROOT/design/exu/cl_modules/full_adder.v
+$RV_ROOT/design/exu/cl_modules/cl_cla_adder.v
 $RV_ROOT/design/exu/cl_modules/partial_mult.v
 $RV_ROOT/design/exu/cl_modules/bit_order_inversion.v
