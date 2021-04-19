@@ -46,6 +46,8 @@ import el2_pkg::*;
    // *** Start - BitManip ***
 
    logic                bitmanip_sel_d;
+   logic                bitmanip_clmul_sel;
+   logic                bitmanip_clmul_sel_d;
    logic                bitmanip_sel_x;
    logic        [31:0]  bitmanip_d;
    logic        [31:0]  bitmanip_x;
@@ -60,6 +62,9 @@ import el2_pkg::*;
    logic                ap_clmul;
    logic                ap_clmulh;
    logic                ap_clmulr;
+   logic                ap_clmul_d;
+   logic                ap_clmulh_d;
+   logic                ap_clmulr_d;
 
    // ZBP
    logic                ap_grev;
@@ -81,6 +86,8 @@ import el2_pkg::*;
    // ZBG
    logic                ap_ffwidth;
    logic                ap_ffred;
+   logic                ap_ffwidth_d;
+   logic                ap_ffred_d;
 
 
    if (pt.BITMANIP_ZBE == 1)
@@ -99,6 +106,7 @@ import el2_pkg::*;
        assign ap_clmul        =  mul_p.clmul;
        assign ap_clmulh       =  mul_p.clmulh;
        assign ap_clmulr       =  mul_p.clmulr;
+       
      end
    else
      begin
@@ -154,13 +162,17 @@ import el2_pkg::*;
      begin
        assign ap_ffwidth      =  mul_p.ffwidth;
        assign ap_ffred        =  mul_p.ffred;
+
+       rvdffe #(8) i_cmul_ff  (.*, .clk(clk),  .din({ap_clmul,ap_clmulh,ap_clmulr,ap_ffwidth,ap_ffred}), .dout({ap_clmul_d,ap_clmulh_d,ap_clmulr_d,ap_ffwidth_d,ap_ffred_d}), .en(1'b1));
      end
    else
      begin
        assign ap_ffwidth      =  1'b0;
        assign ap_ffred        =  1'b0;
+       assign ap_clmul_d      =  1'b0;
+       assign ap_clmulh_d     =  1'b0;
+       assign ap_clmulr_d     =  1'b0;
      end
-
 
    // *** End   - BitManip ***
 
@@ -185,9 +197,49 @@ import el2_pkg::*;
 
    rvdffe #(34) i_a_x_ff         (.*, .clk(clk),  .din({mul_p.low,rs1_ext_in[32:0]}),        .dout({low_x,rs1_x[32:0]}),                 .en(mul_x_enable));
    rvdffe #(33) i_b_x_ff         (.*, .clk(clk),  .din(           rs2_ext_in[32:0] ),        .dout(       rs2_x[32:0] ),                 .en(mul_x_enable));
+   
+   logic            ffwidth_enable;
+   logic [5:0]      polyn_grade_d;
+   logic [32:0]     polyn_red_in;
+   logic [32:0]     polyn_red_in_d;
+   logic [31:0]     ffred_result;
+   logic            cl_selector;
 
+   if (pt.BITMANIP_ZBG == 1)
+     begin
+       assign ffwidth_enable =  ap_ffwidth;
+       assign polyn_red_in[32:0] = {((rs1_in[5] == 1) ? 1'b1 : 1'b0), rs2_in[31:0]};
+       assign cl_selector = bitmanip_clmul_sel_d | ap_ffred_d;
 
-   assign prod_x[65:0]           =  rs1_x  *  rs2_x;
+       rvdffe #(39) i_ffwidth_ff    (.*, .clk(clk),  .din({rs1_in[5:0],polyn_red_in[32:0]}),   .dout({polyn_grade_d[5:0],polyn_red_in_d[32:0]}),   .en(ffwidth_enable));
+
+       cl_modules #(32) mul0(
+            .red_funct(ap_ffred_d),
+            .carry_option(~cl_selector),
+
+            .polyn_grade(polyn_grade_d),
+            .polyn_red_in(polyn_red_in_d),
+            .reduc_in({rs1_x[31:0],rs2_x[31:0]}),
+
+            .a(rs1_x[31:0]),
+            .b(rs2_x[31:0]),
+
+            .out_poly(ffred_result),
+            .mult_out(prod_x)
+        );
+     end
+   else
+     begin
+       assign prod_x[65:0]           =  rs1_x  *  rs2_x;
+
+       assign ffwidth_enable = 1'b0;
+       assign polyn_grade_d  = 5'b0;
+       assign polyn_red_in   = 33'b0;
+       assign polyn_red_in_d = 33'b0;
+       assign ffred_result   = 32'b0;
+       assign cl_selector    = 1'b0;
+     end
+   
 
 
    // * * * * * * * * * * * * * * * * * *  BitManip  :  BEXT, BDEP   * * * * * * * * * * * * * * * * * *
@@ -252,39 +304,52 @@ import el2_pkg::*;
 
    logic        [62:0]    clmul_raw_d;
 
+   if (pt.BITMANIP_ZBG == 1)
+     begin
+       assign clmul_raw_d[31:0]        = ({32{ap_clmul_d}}   &       prod_x[31:0]    ) |
+                                       ( {32{ap_clmulh_d}}   & {1'b0,prod_x[62:32]}  ) |
+                                       ( {32{ap_clmulr_d}}   &       prod_x[62:31]   ) ;
+       assign clmul_raw_d[62:32]       = 31'b0;
+     end
+   else
+     begin
+       assign clmul_raw_d[62:0]      = ( {63{rs2_in[00]}} & {31'b0,rs1_in[31:0]      } ) ^
+                                       ( {63{rs2_in[01]}} & {30'b0,rs1_in[31:0], 1'b0} ) ^
+                                       ( {63{rs2_in[02]}} & {29'b0,rs1_in[31:0], 2'b0} ) ^
+                                       ( {63{rs2_in[03]}} & {28'b0,rs1_in[31:0], 3'b0} ) ^
+                                       ( {63{rs2_in[04]}} & {27'b0,rs1_in[31:0], 4'b0} ) ^
+                                       ( {63{rs2_in[05]}} & {26'b0,rs1_in[31:0], 5'b0} ) ^
+                                       ( {63{rs2_in[06]}} & {25'b0,rs1_in[31:0], 6'b0} ) ^
+                                       ( {63{rs2_in[07]}} & {24'b0,rs1_in[31:0], 7'b0} ) ^
+                                       ( {63{rs2_in[08]}} & {23'b0,rs1_in[31:0], 8'b0} ) ^
+                                       ( {63{rs2_in[09]}} & {22'b0,rs1_in[31:0], 9'b0} ) ^
+                                       ( {63{rs2_in[10]}} & {21'b0,rs1_in[31:0],10'b0} ) ^
+                                       ( {63{rs2_in[11]}} & {20'b0,rs1_in[31:0],11'b0} ) ^
+                                       ( {63{rs2_in[12]}} & {19'b0,rs1_in[31:0],12'b0} ) ^
+                                       ( {63{rs2_in[13]}} & {18'b0,rs1_in[31:0],13'b0} ) ^
+                                       ( {63{rs2_in[14]}} & {17'b0,rs1_in[31:0],14'b0} ) ^
+                                       ( {63{rs2_in[15]}} & {16'b0,rs1_in[31:0],15'b0} ) ^
+                                       ( {63{rs2_in[16]}} & {15'b0,rs1_in[31:0],16'b0} ) ^
+                                       ( {63{rs2_in[17]}} & {14'b0,rs1_in[31:0],17'b0} ) ^
+                                       ( {63{rs2_in[18]}} & {13'b0,rs1_in[31:0],18'b0} ) ^
+                                       ( {63{rs2_in[19]}} & {12'b0,rs1_in[31:0],19'b0} ) ^
+                                       ( {63{rs2_in[20]}} & {11'b0,rs1_in[31:0],20'b0} ) ^
+                                       ( {63{rs2_in[21]}} & {10'b0,rs1_in[31:0],21'b0} ) ^
+                                       ( {63{rs2_in[22]}} & { 9'b0,rs1_in[31:0],22'b0} ) ^
+                                       ( {63{rs2_in[23]}} & { 8'b0,rs1_in[31:0],23'b0} ) ^
+                                       ( {63{rs2_in[24]}} & { 7'b0,rs1_in[31:0],24'b0} ) ^
+                                       ( {63{rs2_in[25]}} & { 6'b0,rs1_in[31:0],25'b0} ) ^
+                                       ( {63{rs2_in[26]}} & { 5'b0,rs1_in[31:0],26'b0} ) ^
+                                       ( {63{rs2_in[27]}} & { 4'b0,rs1_in[31:0],27'b0} ) ^
+                                       ( {63{rs2_in[28]}} & { 3'b0,rs1_in[31:0],28'b0} ) ^
+                                       ( {63{rs2_in[29]}} & { 2'b0,rs1_in[31:0],29'b0} ) ^
+                                       ( {63{rs2_in[30]}} & { 1'b0,rs1_in[31:0],30'b0} ) ^
+                                       ( {63{rs2_in[31]}} & {      rs1_in[31:0],31'b0} );
+     end
 
-   assign clmul_raw_d[62:0]      = ( {63{rs2_in[00]}} & {31'b0,rs1_in[31:0]      } ) ^
-                                   ( {63{rs2_in[01]}} & {30'b0,rs1_in[31:0], 1'b0} ) ^
-                                   ( {63{rs2_in[02]}} & {29'b0,rs1_in[31:0], 2'b0} ) ^
-                                   ( {63{rs2_in[03]}} & {28'b0,rs1_in[31:0], 3'b0} ) ^
-                                   ( {63{rs2_in[04]}} & {27'b0,rs1_in[31:0], 4'b0} ) ^
-                                   ( {63{rs2_in[05]}} & {26'b0,rs1_in[31:0], 5'b0} ) ^
-                                   ( {63{rs2_in[06]}} & {25'b0,rs1_in[31:0], 6'b0} ) ^
-                                   ( {63{rs2_in[07]}} & {24'b0,rs1_in[31:0], 7'b0} ) ^
-                                   ( {63{rs2_in[08]}} & {23'b0,rs1_in[31:0], 8'b0} ) ^
-                                   ( {63{rs2_in[09]}} & {22'b0,rs1_in[31:0], 9'b0} ) ^
-                                   ( {63{rs2_in[10]}} & {21'b0,rs1_in[31:0],10'b0} ) ^
-                                   ( {63{rs2_in[11]}} & {20'b0,rs1_in[31:0],11'b0} ) ^
-                                   ( {63{rs2_in[12]}} & {19'b0,rs1_in[31:0],12'b0} ) ^
-                                   ( {63{rs2_in[13]}} & {18'b0,rs1_in[31:0],13'b0} ) ^
-                                   ( {63{rs2_in[14]}} & {17'b0,rs1_in[31:0],14'b0} ) ^
-                                   ( {63{rs2_in[15]}} & {16'b0,rs1_in[31:0],15'b0} ) ^
-                                   ( {63{rs2_in[16]}} & {15'b0,rs1_in[31:0],16'b0} ) ^
-                                   ( {63{rs2_in[17]}} & {14'b0,rs1_in[31:0],17'b0} ) ^
-                                   ( {63{rs2_in[18]}} & {13'b0,rs1_in[31:0],18'b0} ) ^
-                                   ( {63{rs2_in[19]}} & {12'b0,rs1_in[31:0],19'b0} ) ^
-                                   ( {63{rs2_in[20]}} & {11'b0,rs1_in[31:0],20'b0} ) ^
-                                   ( {63{rs2_in[21]}} & {10'b0,rs1_in[31:0],21'b0} ) ^
-                                   ( {63{rs2_in[22]}} & { 9'b0,rs1_in[31:0],22'b0} ) ^
-                                   ( {63{rs2_in[23]}} & { 8'b0,rs1_in[31:0],23'b0} ) ^
-                                   ( {63{rs2_in[24]}} & { 7'b0,rs1_in[31:0],24'b0} ) ^
-                                   ( {63{rs2_in[25]}} & { 6'b0,rs1_in[31:0],25'b0} ) ^
-                                   ( {63{rs2_in[26]}} & { 5'b0,rs1_in[31:0],26'b0} ) ^
-                                   ( {63{rs2_in[27]}} & { 4'b0,rs1_in[31:0],27'b0} ) ^
-                                   ( {63{rs2_in[28]}} & { 3'b0,rs1_in[31:0],28'b0} ) ^
-                                   ( {63{rs2_in[29]}} & { 2'b0,rs1_in[31:0],29'b0} ) ^
-                                   ( {63{rs2_in[30]}} & { 1'b0,rs1_in[31:0],30'b0} ) ^
-                                   ( {63{rs2_in[31]}} & {      rs1_in[31:0],31'b0} );
+
+
+   
 
 
 
@@ -601,43 +666,24 @@ import el2_pkg::*;
    assign bfp_result_d[31:0]     = bfp_shift_data[63:32] | (rs1_in[31:0] & bfp_shift_mask[63:32]);
 
 
-   // * * * * * * * * * * * * * * * * * *  BitManip  :  FFWIDTH, FFRED         * * * * * * * * * * * * *
 
-   logic            ffwidth_enable;
-   logic [5:0]      polyn_grade_d;
-   logic [32:0]     polyn_red_in;
-   logic [32:0]     polyn_red_in_d;
-   logic [31:0]     ffred_result;
-
-   if (pt.BITMANIP_ZBG == 1)
-     begin
-       assign ffwidth_enable =  ap_ffwidth;
-       assign polyn_red_in[32:0] = {((rs1_in[5] == 1) ? 1'b1 : 1'b0), rs2_in[31:0]};
-
-       rvdffe #(39) i_ffwidth_ff    (.*, .clk(clk),  .din({rs1_in[5:0],polyn_red_in[32:0]}),   .dout({polyn_grade_d[5:0],polyn_red_in_d[32:0]}),   .en(ffwidth_enable));
-       
-       red_test #(32) red0(
-            .polyn_grade(polyn_grade_d),
-            .polyn_red_in(polyn_red_in_d),
-            .reduc_in({rs1_in[31:0],rs2_in[31:0]}),
-
-            .out(ffred_result)
-        );
-     end
-   else
-     begin
-       assign ffwidth_enable = 1'b0;
-       assign polyn_grade_d  = 5'b0;
-       assign polyn_red_in   = 33'b0;
-       assign polyn_red_in_d = 33'b0;
-       assign ffred_result   = 32'b0;
-     end
 
 
    // * * * * * * * * * * * * * * * * * *  BitManip  :  Common logic * * * * * * * * * * * * * * * * * *
 
 
-   assign bitmanip_sel_d         =  ap_bext | ap_bdep | ap_clmul | ap_clmulh | ap_clmulr | ap_grev | ap_gorc | ap_shfl | ap_unshfl | crc32_all | ap_bfp | ap_ffred;
+   if (pt.BITMANIP_ZBG == 1)
+     begin
+       assign bitmanip_clmul_sel     =  ap_clmul   | ap_clmulh   | ap_clmulr;
+       assign bitmanip_clmul_sel_d   =  ap_clmul_d | ap_clmulh_d | ap_clmulr_d;
+       assign bitmanip_sel_d         =  ap_bext | ap_bdep | ap_grev | ap_gorc | ap_shfl | ap_unshfl | crc32_all | ap_bfp;
+     end
+   else
+     begin
+       assign bitmanip_clmul_sel     =  1'b0;
+       assign bitmanip_clmul_sel_d   =  1'b0;
+       assign bitmanip_sel_d         =  ap_bext | ap_bdep | ap_clmul | ap_clmulh | ap_clmulr | ap_grev | ap_gorc | ap_shfl | ap_unshfl | crc32_all | ap_bfp;
+     end
 
    assign bitmanip_d[31:0]       = ( {32{ap_bext}}     &       bext_d[31:0]        ) |
                                    ( {32{ap_bdep}}     &       bdep_d[31:0]        ) |
@@ -654,19 +700,20 @@ import el2_pkg::*;
                                    ( {32{ap_crc32c_b}} &       crc32c_bd[31:0]     ) |
                                    ( {32{ap_crc32c_h}} &       crc32c_hd[31:0]     ) |
                                    ( {32{ap_crc32c_w}} &       crc32c_wd[31:0]     ) |
-                                   ( {32{ap_bfp}}      &       bfp_result_d[31:0]  ) |
-                                   ( {32{ap_ffred}}    &       ffred_result[31:0]  );
+                                   ( {32{ap_bfp}}      &       bfp_result_d[31:0]  );
 
 
 
-   rvdffe #(33) i_bitmanip_ff    (.*, .clk(clk),  .din({bitmanip_sel_d,bitmanip_d[31:0]}),   .dout({bitmanip_sel_x,bitmanip_x[31:0]}),   .en(bit_x_enable));
+   rvdffe #(34) i_bitmanip_ff    (.*, .clk(clk),  .din({bitmanip_sel_d,bitmanip_d[31:0]}),   .dout({bitmanip_sel_x,bitmanip_x[31:0]}),   .en(bit_x_enable));
 
 
 
 
-   assign result_x[31:0]         =  ( {32{~bitmanip_sel_x & ~low_x}} & prod_x[63:32]    ) |
-                                    ( {32{~bitmanip_sel_x &  low_x}} & prod_x[31:0]     ) |
-                                                                       bitmanip_x[31:0];
+   assign result_x[31:0]         =  ( {32{~bitmanip_sel_x & ~low_x & ~bitmanip_clmul_sel_d & ~ap_ffred_d}}        & prod_x[63:32]        ) |
+                                    ( {32{~bitmanip_sel_x &  low_x & ~bitmanip_clmul_sel_d & ~ap_ffred_d}}        & prod_x[31:0]         ) |
+                                    ( {32{bitmanip_clmul_sel_d }}                                                 & clmul_raw_d[31:0]    ) |
+                                    ( {32{ap_ffred_d }}                                                           & ffred_result[31:0]   ) |
+                                    ( {32{bitmanip_sel_x }}                                                       & bitmanip_x[31:0]     );
 
 
 
