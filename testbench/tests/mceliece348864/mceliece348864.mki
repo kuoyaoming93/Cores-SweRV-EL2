@@ -1,0 +1,7 @@
+CONF_PARAMS = -set build_axi4 -set bitmanip_zbc -set bitmanip_zbg -set fpga_optimize 1 -target typical_pd # -set dccm_size=16 #-set dccm_offset=0x80000 -set dccm_num_banks=4
+GCC_PATH = /opt/riscv
+ABI = -mabi=ilp32 -march=rv32imac
+NISTFLAGS = -O3 -fomit-frame-pointer -fPIC -no-pie -I. -Isubroutines
+TEST_CFLAGS = $(NISTFLAGS)
+OFILES = crt0.o printf.o test.o benes.o bm.o controlbits.o decrypt.o encrypt.o gf.o operations.o pk_gen.o root.o sk_gen.o synd.o transpose.o util.o fips202.o randombytes.o pk.o sk.o
+TEST_LIBS = -L $(GCC_PATH)/riscv64-unknown-elf/lib/rv32imac/ilp32 -L $(GCC_PATH)/lib/gcc/riscv64-unknown-elf/10.2.0/rv32imac/ilp32 -lc -lgcc -lnosys
