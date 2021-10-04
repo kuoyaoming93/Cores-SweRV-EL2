@@ -25,6 +25,8 @@ $RV_ROOT/design/exu/el2_exu_alu_ctl.sv
 $RV_ROOT/design/exu/el2_exu_mul_ctl.sv
 $RV_ROOT/design/exu/el2_exu_div_ctl.sv
 $RV_ROOT/design/exu/el2_exu.sv
+$RV_ROOT/design/exu/aes/riscv_crypto_fu_saes32.v
+$RV_ROOT/design/exu/aes/riscv_crypto_fu_sboxes.v
 $RV_ROOT/design/lsu/el2_lsu.sv
 $RV_ROOT/design/lsu/el2_lsu_clkdomain.sv
 $RV_ROOT/design/lsu/el2_lsu_addrcheck.sv

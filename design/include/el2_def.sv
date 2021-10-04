@@ -203,6 +203,10 @@ typedef struct packed {
                       } el2_lsu_error_pkt_t;
 
 typedef struct packed {
+                       logic aes32esi;
+                       logic aes32esmi;
+                       logic aes32dsi;
+                       logic aes32dsmi;
                        logic clz;
                        logic ctz;
                        logic pcnt;
@@ -232,6 +236,7 @@ typedef struct packed {
                        logic clmulh;
                        logic clmulr;
                        logic zbc;
+                       logic zbg;
                        logic shfl;
                        logic unshfl;
                        logic zbp;
@@ -302,6 +307,10 @@ typedef struct packed {
 
 
 typedef struct packed {
+                       logic aes32esi;
+                       logic aes32esmi;
+                       logic aes32dsi;
+                       logic aes32dsmi;
                        logic valid;
                        logic rs1_sign;
                        logic rs2_sign;

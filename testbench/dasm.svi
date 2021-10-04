@@ -325,6 +325,33 @@ string mn;
         6: mn = "rem";
         7: mn = "remu";
         endcase
+    else if(opcode[31:25]==5)
+        case(opcode[14:12])
+        1: mn = "clmul";
+        2: mn = "clmulr";
+        3: mn = "clmulh";
+        endcase
+    else if(opcode[31:25]==7)
+        case(opcode[14:12])
+        0: mn = "ffwidth";
+        1: mn = "ffred";
+        endcase
+    else if(opcode[31:25]==21)
+        case(opcode[14:12])
+        0: mn = "aes32dsi";
+        endcase
+    else if(opcode[31:25]==23)
+        case(opcode[14:12])
+        0: mn = "aes32dsmi";
+        endcase
+    else if(opcode[31:25]==11)
+        case(opcode[14:12])
+        0: mn = "aes32esi";
+        endcase
+    else if(opcode[31:25]==13)
+        case(opcode[14:12])
+        0: mn = "aes32esmi";
+        endcase
     else
         case(opcode[14:12])
         0: mn = opcode[30]? "sub":"add";

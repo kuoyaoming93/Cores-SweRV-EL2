@@ -256,6 +256,11 @@ divu =       [0000001..........101.....0110011]
 rem =        [0000001..........110.....0110011]
 remu =       [0000001..........111.....0110011]
 
+aes32esi =   [0010001..........000.....0110011]
+aes32esmi =  [0010011..........000.....0110011]
+aes32dsi =   [0010101..........000.....0110011]
+aes32dsmi =  [0010111..........000.....0110011]
+
 
 .input
 
@@ -298,6 +303,10 @@ rv32i = {
 .output
 
 rv32i = {
+      aes32esi
+      aes32esmi
+      aes32dsi
+      aes32dsmi
       alu
       rs1
       rs2
@@ -373,6 +382,7 @@ rv32i = {
       clmulh
       clmulr
       zbc
+      zbg
       grev
       gorc
       shfl
@@ -439,6 +449,11 @@ rv32i[bdep]      =  { mul zbe     rs1 rs2 rd                       bdep  }
 rv32i[clmul]     =  { mul zbc     rs1 rs2 rd                       clmul }
 rv32i[clmulh]    =  { mul zbc     rs1 rs2 rd                       clmulh}
 rv32i[clmulr]    =  { mul zbc     rs1 rs2 rd                       clmulr}
+
+rv32i[aes32esi]  =  { mul zbg     rs1 rs2 rd                       aes32esi}
+rv32i[aes32esmi] =  { mul zbg     rs1 rs2 rd                       aes32esmi}
+rv32i[aes32dsi]  =  { mul zbg     rs1 rs2 rd                       aes32dsi}
+rv32i[aes32dsmi] =  { mul zbg     rs1 rs2 rd                       aes32dsmi}
 
 rv32i[crc32_b]   =  { mul zbr     rs1     rd                       crc32_b}
 rv32i[crc32_h]   =  { mul zbr     rs1     rd                       crc32_h}

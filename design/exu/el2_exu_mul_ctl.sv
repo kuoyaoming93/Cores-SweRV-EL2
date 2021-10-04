@@ -78,6 +78,13 @@ import el2_pkg::*;
    // ZBF
    logic                ap_bfp;
 
+   // ZBG
+   logic                ap_aes32esi;
+   logic                ap_aes32esmi;
+   logic                ap_aes32dsi;
+   logic                ap_aes32dsmi;
+   logic                ap_aes32;
+
 
    if (pt.BITMANIP_ZBE == 1)
      begin
@@ -101,6 +108,21 @@ import el2_pkg::*;
        assign ap_clmul        =  1'b0;
        assign ap_clmulh       =  1'b0;
        assign ap_clmulr       =  1'b0;
+     end
+   
+   if (pt.BITMANIP_ZBG == 1)
+     begin
+       assign ap_aes32esi     =  mul_p.aes32esi;
+       assign ap_aes32esmi    =  mul_p.aes32esmi;
+       assign ap_aes32dsi     =  mul_p.aes32dsi;
+       assign ap_aes32dsmi    =  mul_p.aes32dsmi;
+     end
+   else
+     begin
+       assign ap_aes32esi     =  1'b0;
+       assign ap_aes32esmi    =  1'b0;
+       assign ap_aes32dsi     =  1'b0;
+       assign ap_aes32dsmi    =  1'b0;
      end
 
    if (pt.BITMANIP_ZBP == 1)
@@ -174,6 +196,27 @@ import el2_pkg::*;
 
    assign prod_x[65:0]           =  rs1_x  *  rs2_x;
 
+   // --------------------------- AES             ----------------------------------
+
+   logic  [31:0]  aes_rd;
+   logic          aes_ready;
+   assign ap_aes32 = ap_aes32esi | ap_aes32esmi | ap_aes32dsi | ap_aes32dsmi;
+   
+
+   riscv_crypto_fu_saes32 riscv_aes(
+
+    .valid(ap_aes32),        
+    .rs1(rs1_in),
+    .rs2(rs2_in),
+    .bs(2'b0),
+    .op_saes32_encs(ap_aes32esi),         // Encrypt SubBytes
+    .op_saes32_encsm(ap_aes32esmi),       // Encrypt SubBytes + MixColumn
+    .op_saes32_decs(ap_aes32dsi),         // Decrypt SubBytes
+    .op_saes32_decsm(ap_aes32dsmi),       // Decrypt SubBytes + MixColumn
+
+    .rd(aes_rd),                          // output destination register value.
+    .ready(aes_ready)                     // Compute finished?
+    );
 
    // * * * * * * * * * * * * * * * * * *  BitManip  :  BEXT, BDEP   * * * * * * * * * * * * * * * * * *
 
@@ -592,7 +635,7 @@ import el2_pkg::*;
    // * * * * * * * * * * * * * * * * * *  BitManip  :  Common logic * * * * * * * * * * * * * * * * * *
 
 
-   assign bitmanip_sel_d         =  ap_bext | ap_bdep | ap_clmul | ap_clmulh | ap_clmulr | ap_grev | ap_gorc | ap_shfl | ap_unshfl | crc32_all | ap_bfp;
+   assign bitmanip_sel_d         =  ap_bext | ap_bdep | ap_clmul | ap_clmulh | ap_clmulr | ap_grev | ap_gorc | ap_shfl | ap_unshfl | crc32_all | ap_bfp | ap_aes32;
 
    assign bitmanip_d[31:0]       = ( {32{ap_bext}}     &       bext_d[31:0]        ) |
                                    ( {32{ap_bdep}}     &       bdep_d[31:0]        ) |
@@ -609,7 +652,8 @@ import el2_pkg::*;
                                    ( {32{ap_crc32c_b}} &       crc32c_bd[31:0]     ) |
                                    ( {32{ap_crc32c_h}} &       crc32c_hd[31:0]     ) |
                                    ( {32{ap_crc32c_w}} &       crc32c_wd[31:0]     ) |
-                                   ( {32{ap_bfp}}      &       bfp_result_d[31:0]  );
+                                   ( {32{ap_bfp}}      &       bfp_result_d[31:0]  ) |
+                                   ( {32{ap_aes32}}    &       aes_rd[31:0]        );
 
 
 

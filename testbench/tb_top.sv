@@ -317,7 +317,7 @@ module tb_top ( input bit core_clk );
     assign WriteData = lmem.WriteData;
     assign mailbox_data_val = WriteData[7:0] > 8'h5 && WriteData[7:0] < 8'h7f;
 
-    parameter MAX_CYCLES = 2_000_000;
+    parameter MAX_CYCLES = 1_000_000_000;
 
     integer fd, tp, el;
 
@@ -353,22 +353,22 @@ module tb_top ( input bit core_clk );
         wb_dest   <= rvtop.swerv.dec.dec_i0_waddr_r;
         wb_data   <= rvtop.swerv.dec.dec_i0_wdata_r;
         if (trace_rv_i_valid_ip) begin
-           $fwrite(tp,"%b,%h,%h,%0h,%0h,3,%b,%h,%h,%b\n", trace_rv_i_valid_ip, 0, trace_rv_i_address_ip,
+           /*$fwrite(tp,"%b,%h,%h,%0h,%0h,3,%b,%h,%h,%b\n", trace_rv_i_valid_ip, 0, trace_rv_i_address_ip,
                   0, trace_rv_i_insn_ip,trace_rv_i_exception_ip,trace_rv_i_ecause_ip,
-                  trace_rv_i_tval_ip,trace_rv_i_interrupt_ip);
+                  trace_rv_i_tval_ip,trace_rv_i_interrupt_ip);*/
            // Basic trace - no exception register updates
            // #1 0 ee000000 b0201073 c 0b02       00000000
            commit_count++;
-           $fwrite (el, "%10d : %8s 0 %h %h%13s ; %s\n", cycleCnt, $sformatf("#%0d",commit_count),
+           /*$fwrite (el, "%10d : %8s 0 %h %h%13s ; %s\n", cycleCnt, $sformatf("#%0d",commit_count),
                         trace_rv_i_address_ip, trace_rv_i_insn_ip,
                         (wb_dest !=0 && wb_valid)?  $sformatf("%s=%h", abi_reg[wb_dest], wb_data) : "             ",
                         dasm(trace_rv_i_insn_ip, trace_rv_i_address_ip, wb_dest & {5{wb_valid}}, wb_data)
-                   );
+                   );*/
         end
-        if(rvtop.swerv.dec.dec_nonblock_load_wen)
+        /*if(rvtop.swerv.dec.dec_nonblock_load_wen)
            $fwrite (el, "%10d : %32s=%h ; nbL\n", cycleCnt, abi_reg[rvtop.swerv.dec.dec_nonblock_load_waddr], rvtop.swerv.dec.lsu_nonblock_load_data);
         if(rvtop.swerv.dec.exu_div_wren)
-           $fwrite (el, "%10d : %32s=%h ; nbD\n", cycleCnt, abi_reg[rvtop.swerv.dec.div_waddr_wb], rvtop.swerv.dec.exu_div_result);
+           $fwrite (el, "%10d : %32s=%h ; nbD\n", cycleCnt, abi_reg[rvtop.swerv.dec.div_waddr_wb], rvtop.swerv.dec.exu_div_result);*/
     end
 
 
@@ -415,9 +415,9 @@ module tb_top ( input bit core_clk );
 
         $readmemh("program.hex",  lmem.mem);
         $readmemh("program.hex",  imem.mem);
-        tp = $fopen("trace_port.csv","w");
-        el = $fopen("exec.log","w");
-        $fwrite (el, "//   Cycle : #inst    0    pc    opcode    reg=value   ; mnemonic\n");
+        //tp = $fopen("trace_port.csv","w");
+        //el = $fopen("exec.log","w");
+        //$fwrite (el, "//   Cycle : #inst    0    pc    opcode    reg=value   ; mnemonic\n");
         fd = $fopen("console.log","w");
         commit_count = 0;
         preload_dccm();
