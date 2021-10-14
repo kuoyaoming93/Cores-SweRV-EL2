@@ -199,6 +199,7 @@ function string dasm32( input[31:0] opcode, input[31:0] pc);
     7'b0110011: return dasm32_ar(opcode);
     7'b0001111: return {"fence", dasm32_fence(opcode)};
     7'b1110011: return dasm32_e(opcode);
+    7'b0001011: return custom(opcode);
 
     endcase
     return $sformatf(".long 0x%h", opcode);
@@ -310,7 +311,22 @@ string mn;
     return $sformatf("%s %s, %s, %0d", mn, abi_reg[opcode[11:7]], abi_reg[opcode[19:15]], imm);
 endfunction
 
-
+function string custom( input[31:0] opcode);
+string mn;
+    if(opcode[31:25]==0)
+        case(opcode[14:12])
+        0: mn = "ffadd";
+        1: mn = "ffmul1";
+        2: mn = "ffinv1";
+        endcase
+    else if(opcode[31:25]==1)
+        case(opcode[14:12])
+        1: mn = "ffadd";
+        2: mn = "ffmul2";
+        3: mn = "ffinv2";
+        endcase
+    return $sformatf("%s %s, %s, %s", mn, abi_reg[opcode[11:7]], abi_reg[opcode[19:15]], abi_reg[opcode[24:20]]);
+endfunction
 
 function string dasm32_ar( input[31:0] opcode);
 string mn;

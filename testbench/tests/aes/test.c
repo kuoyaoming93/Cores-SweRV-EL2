@@ -42,13 +42,13 @@ int main(void)
 #endif
 
 #ifdef CUSTOM_CODES
-    uint32_t empty_rd;
+    /*uint32_t empty_rd;
     asm volatile
             (   
                 "ffwidth   %[z], %[x], %[y]\n\t"
                 : [z] "=r" ((uint32_t)empty_rd)
                 : [x] "r" ((uint32_t)8), [y] "r" ((uint32_t)0x11B)
-            );  
+            );  */
 #endif
     //exit = test_decrypt_ecb();
     exit = test_encrypt_cbc() + test_decrypt_cbc() +

@@ -45,13 +45,13 @@ int main(void)
     printf("pk = %d\n", pk[261119]);
     printf("sk = %d\n", sk[6491]);
 
-    uint32_t empty_rd;
+    /*uint32_t empty_rd;
     asm volatile
     (   
         "ffwidth   %[z], %[x], %[y]\n\t"
         : [z] "=r" ((uint32_t)empty_rd)
         : [x] "r" ((uint32_t)12), [y] "r" ((uint32_t)0x1009)
-    );  
+    );  */
 
     long time1,time2;
     time1 = get_mcycle();

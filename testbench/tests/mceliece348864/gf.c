@@ -26,8 +26,17 @@ gf gf_add(gf in0, gf in1)
 gf gf_mul(gf in0, gf in1)
 {
 #ifdef CUSTOM_CODES
-	uint32_t imm_result,result;
-    asm volatile
+	//uint32_t imm_result,result;
+	uint32_t result;
+
+  	asm volatile
+            (   
+                "ffmul2   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)result)
+                : [x] "r" ((uint32_t)in0), [y] "r" ((uint32_t)in1)
+            ); 
+
+    /*asm volatile
                 (   
                     "clmul   %[z], %[x], %[y]\n\t"
                     : [z] "=r" ((uint32_t)imm_result)
@@ -38,7 +47,7 @@ gf gf_mul(gf in0, gf in1)
                     "ffred   %[z], %[x], %[y]\n\t"
                     : [z] "=r" ((uint32_t)result)
                     : [x] "r" ((uint32_t)0), [y] "r" ((uint32_t)imm_result)
-                );  
+                );  */
     return (uint16_t) result;
 #else
 	int i;
@@ -99,6 +108,17 @@ static inline gf gf_sq(gf in)
 
 gf gf_inv(gf in)
 {
+#ifdef CUSTOM_CODES
+	
+	uint32_t result;
+    asm volatile
+        (   
+            "ffinv   %[z], %[x], %[y]\n\t"
+            : [z] "=r" ((uint32_t)result)
+            : [x] "r" ((uint32_t)in), [y] "r" ((uint32_t)in)
+        );    
+	return (uint16_t) result;
+#else
 	gf tmp_11;
 	gf tmp_1111;
 
@@ -125,6 +145,7 @@ gf gf_inv(gf in)
 	out = gf_mul(out, in); // 11111111111
 
 	return gf_sq(out); // 111111111110
+#endif
 }
 
 /* input: field element den, num */

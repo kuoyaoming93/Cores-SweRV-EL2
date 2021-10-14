@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#define NBITS 16
-#define CUSTOM_CODES
+#define NBITS 12
+//#define CUSTOM_CODES
 
 extern uint64_t get_mcycle();
 
@@ -65,8 +65,13 @@ uint16_t gf_mult16(uint16_t a, uint16_t b)
     while (a && b) {
             if (b & 1) 
                 p ^= a; 
+#if (NBITS == 16)                
             if (a & 0x8000) 
                 a = (a << 1) ^ 0x1100B; 
+#elif (NBITS == 12)
+            if (a & 0x800) 
+                a = (a << 1) ^ 0x1009; 
+#endif                
             else
                 a <<= 1; /* equivalent to a*2 */
             b >>= 1; /* equivalent to b // 2 */
@@ -117,11 +122,15 @@ int main (void)
 {
     
     int a,b;
-    int p = 0, inv = 0; 
+    int p = 0, p2 = 0, inv = 0; 
 
     // GF(2^16)
-    a=128;
-    b=4096;
+    //a=128;
+    //b=4096;
+
+    // GF(2^12)
+    a=4088;
+    b=1530;
 
     // GF(2^8)
     //a=160;
@@ -149,6 +158,13 @@ int main (void)
                 : [z] "=r" ((uint32_t)empty_rd)
                 : [x] "r" ((uint32_t)4), [y] "r" ((uint32_t)0x13)
             );  
+#elif (NBITS == 12)
+    asm volatile
+            (   
+                "ffwidth   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)empty_rd)
+                : [x] "r" ((uint32_t)12), [y] "r" ((uint32_t)0x1009)
+            );        
 #elif (NBITS == 16)
     asm volatile
             (   
@@ -160,7 +176,8 @@ int main (void)
 #endif
 
     //p = gf_mult(a,b);
-    p = gf_mult16(a,b);
+    p  = gf_mult16(a,b);
+    p2 = gf_mult16(a,a);
 
     long time1,time2;
     time1 = get_mcycle();
@@ -168,9 +185,26 @@ int main (void)
     inv = gf_inv16(a);
     time2 = get_mcycle();
 
+    uint32_t result, product;
+    asm volatile
+        (   
+            "ffinv   %[z], %[x], %[y]\n\t"
+            : [z] "=r" ((uint32_t)result)
+            : [x] "r" ((uint32_t)a), [y] "r" ((uint32_t)a)
+        );    
+    asm volatile
+        (   
+            "ffmul2   %[z], %[x], %[y]\n\t"
+            : [z] "=r" ((uint32_t)product)
+            : [x] "r" ((uint32_t)a), [y] "r" ((uint32_t)b)
+        );          
+
     printf("%d cycles\n",time2-time1);
 	
     printf("El producto es: %d\n", p);
+    printf("El producto es: %d\n", product);
+    printf("El cuadrado es: %d\n", p2);
     printf("La inversa de A es: %d\n", inv);
+    printf("La inversa de A es: %d\n", result);
 	return 0;
 }

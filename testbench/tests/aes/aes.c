@@ -322,8 +322,16 @@ void coef_mult(uint8_t *a, uint8_t *b, uint8_t *d) {
 static uint8_t Multiply(uint8_t x, uint8_t y)
 {
 #ifdef CUSTOM_CODES
-  uint32_t imm_result,result;
+  //uint32_t imm_result,result;
+  uint32_t result;
+
   asm volatile
+            (   
+                "ffmul1   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)result)
+                : [x] "r" ((uint32_t)x), [y] "r" ((uint32_t)y)
+            ); 
+  /*asm volatile
             (   
                 "clmul   %[z], %[x], %[y]\n\t"
                 : [z] "=r" ((uint32_t)imm_result)
@@ -334,7 +342,7 @@ static uint8_t Multiply(uint8_t x, uint8_t y)
                 "ffred   %[z], %[x], %[y]\n\t"
                 : [z] "=r" ((uint32_t)result)
                 : [x] "r" ((uint32_t)0), [y] "r" ((uint32_t)imm_result)
-            );  
+            );  */
   return (uint8_t) result;
 #else
   uint8_t p = 0, i = 0, hbs = 0;

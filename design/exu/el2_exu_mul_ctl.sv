@@ -79,8 +79,10 @@ import el2_pkg::*;
    logic                ap_bfp;
 
    // ZBG
-   logic                ap_ffwidth;
-   logic                ap_ffred;
+   logic                ap_ffadd;
+   logic                ap_ffmul1;
+   logic                ap_ffmul2;
+   logic                ap_ffinv;
 
 
    if (pt.BITMANIP_ZBE == 1)
@@ -152,13 +154,17 @@ import el2_pkg::*;
 
    if (pt.BITMANIP_ZBG == 1)
      begin
-       assign ap_ffwidth      =  mul_p.ffwidth;
-       assign ap_ffred        =  mul_p.ffred;
+       assign ap_ffadd        =  mul_p.ffadd;
+       assign ap_ffmul1       =  mul_p.ffmul1;
+       assign ap_ffmul2       =  mul_p.ffmul2;
+       assign ap_ffinv        =  mul_p.ffinv;
      end
    else
      begin
-       assign ap_ffwidth      =  1'b0;
-       assign ap_ffred        =  1'b0;
+       assign ap_ffadd        =  1'b0;
+       assign ap_ffmul1       =  1'b0;
+       assign ap_ffmul2       =  1'b0;
+       assign ap_ffinv        =  1'b0;
      end
 
 
@@ -601,43 +607,78 @@ import el2_pkg::*;
    assign bfp_result_d[31:0]     = bfp_shift_data[63:32] | (rs1_in[31:0] & bfp_shift_mask[63:32]);
 
 
-   // * * * * * * * * * * * * * * * * * *  BitManip  :  FFWIDTH, FFRED         * * * * * * * * * * * * *
+   // * * * * * * * * * * * * * * * * * *  BitManip  :  FFMUL         * * * * * * * * * * * * *
 
-   logic            ffwidth_enable;
-   logic [5:0]      polyn_grade_d;
+   logic [5:0]      polyn_grade;
    logic [32:0]     polyn_red_in;
-   logic [32:0]     polyn_red_in_d;
    logic [31:0]     ffred_result;
+   logic [31:0]     ffadd_result;
+   logic [31:0]     ffinv_result;
+
+   logic            ap_ffops;
+   logic            ap_ffmul;
+
+   assign ap_ffops = ap_ffadd | ap_ffmul | ap_ffinv;
+   assign ap_ffmul = ap_ffmul1 | ap_ffmul2;
+
+   always @(ap_ffmul) begin
+     case ({ap_ffmul1,ap_ffmul2})
+      2'b10 : 
+      begin
+        polyn_grade   = 8;
+        polyn_red_in  = 'h11D; // 11B
+      end
+      2'b01 :
+      begin
+        polyn_grade   = 12;
+        polyn_red_in  = 'h1009;
+      end
+      default :
+      begin
+        polyn_grade   = 0;
+        polyn_red_in  = 0;
+      end
+     endcase
+     
+   end
 
    if (pt.BITMANIP_ZBG == 1)
      begin
-       assign ffwidth_enable =  ap_ffwidth;
-       assign polyn_red_in[32:0] = {((rs1_in[5] == 1) ? 1'b1 : 1'b0), rs2_in[31:0]};
 
-       rvdffe #(39) i_ffwidth_ff    (.*, .clk(clk),  .din({rs1_in[5:0],polyn_red_in[32:0]}),   .dout({polyn_grade_d[5:0],polyn_red_in_d[32:0]}),   .en(ffwidth_enable));
-       
-       red_test #(32) red0(
-            .polyn_grade(polyn_grade_d),
-            .polyn_red_in(polyn_red_in_d),
-            .reduc_in({rs1_in[31:0],rs2_in[31:0]}),
-
-            .out(ffred_result)
+        ffadd #(32) ffadd0 (
+          .in_a(rs1_in[31:0]),
+          .in_b(rs2_in[31:0]),
+          .out(ffadd_result)
         );
+
+        ffmul #(32) ffmul0 (
+          .polyn_grade(polyn_grade),
+          .polyn_red_in(polyn_red_in),
+          .in_a(rs1_in[31:0]),
+          .in_b(rs2_in[31:0]),
+          .out(ffred_result)
+        );
+
+        ffinv8 ffinv0 (
+          .inv_in(rs1_in[31:0]),
+          .out(ffinv_result[31:0])
+        );
+
      end
    else
      begin
-       assign ffwidth_enable = 1'b0;
-       assign polyn_grade_d  = 5'b0;
+       assign polyn_grade    = 5'b0;
        assign polyn_red_in   = 33'b0;
-       assign polyn_red_in_d = 33'b0;
+
        assign ffred_result   = 32'b0;
+       assign ffadd_result   = 32'b0;
      end
 
 
    // * * * * * * * * * * * * * * * * * *  BitManip  :  Common logic * * * * * * * * * * * * * * * * * *
 
 
-   assign bitmanip_sel_d         =  ap_bext | ap_bdep | ap_clmul | ap_clmulh | ap_clmulr | ap_grev | ap_gorc | ap_shfl | ap_unshfl | crc32_all | ap_bfp | ap_ffred;
+   assign bitmanip_sel_d         =  ap_bext | ap_bdep | ap_clmul | ap_clmulh | ap_clmulr | ap_grev | ap_gorc | ap_shfl | ap_unshfl | crc32_all | ap_bfp | ap_ffops;
 
    assign bitmanip_d[31:0]       = ( {32{ap_bext}}     &       bext_d[31:0]        ) |
                                    ( {32{ap_bdep}}     &       bdep_d[31:0]        ) |
@@ -655,7 +696,9 @@ import el2_pkg::*;
                                    ( {32{ap_crc32c_h}} &       crc32c_hd[31:0]     ) |
                                    ( {32{ap_crc32c_w}} &       crc32c_wd[31:0]     ) |
                                    ( {32{ap_bfp}}      &       bfp_result_d[31:0]  ) |
-                                   ( {32{ap_ffred}}    &       ffred_result[31:0]  );
+                                   ( {32{ap_ffadd}}    &       ffadd_result[31:0]  ) |
+                                   ( {32{ap_ffmul}}    &       ffred_result[31:0]  ) |
+                                   ( {32{ap_ffinv}}    &       ffinv_result[31:0]  );
 
 
 

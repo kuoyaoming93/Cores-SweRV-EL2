@@ -252,9 +252,10 @@ divu =       [0000001..........101.....0110011]
 rem =        [0000001..........110.....0110011]
 remu =       [0000001..........111.....0110011]
 
-ffwidth   =  [0000111..........000.....0110011]
-ffred   =    [0000111..........001.....0110011]
-
+ffadd   =    [0000000..........000.....0001011]
+ffmul1  =    [0000000..........001.....0001011]
+ffmul2  =    [0000001..........001.....0001011]
+ffinv   =    [0000000..........010.....0001011]
 
 .input
 
@@ -297,8 +298,10 @@ rv32i = {
 .output
 
 rv32i = {
-      ffwidth
-      ffred
+      ffadd
+      ffmul1
+      ffmul2
+      ffinv
       alu
       rs1
       rs2
@@ -442,8 +445,10 @@ rv32i[clmul]     =  { mul zbc     rs1 rs2 rd                       clmul }
 rv32i[clmulh]    =  { mul zbc     rs1 rs2 rd                       clmulh}
 rv32i[clmulr]    =  { mul zbc     rs1 rs2 rd                       clmulr}
 
-rv32i[ffwidth]   =  { mul zbg     rs1 rs2 rd                       ffwidth}
-rv32i[ffred]     =  { mul zbg     rs1 rs2 rd                       ffred}
+rv32i[ffadd]     =  { mul zbg     rs1 rs2 rd                       ffadd}
+rv32i[ffmul1]    =  { mul zbg     rs1 rs2 rd                       ffmul1}
+rv32i[ffmul2]    =  { mul zbg     rs1 rs2 rd                       ffmul2}
+rv32i[ffinv]     =  { mul zbg     rs1 rs2 rd                       ffinv}
 
 rv32i[crc32_b]   =  { mul zbr     rs1     rd                       crc32_b}
 rv32i[crc32_h]   =  { mul zbr     rs1     rd                       crc32_h}
