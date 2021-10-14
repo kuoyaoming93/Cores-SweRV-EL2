@@ -48,24 +48,21 @@ installed so that it can be used to prepare RISCV binaries to run.
    
     - Add the following lines in the define section of **riscv-opc.h**. 
     ```c
-        #define MATCH_CLMUL 0xa001033
-        #define MASK_CLMUL  0xfe00707fL
-        #define MATCH_CLMULH 0xa003033
-        #define MASK_CLMULH  0xfe00707fL
-        #define MATCH_CLMULR 0xa002033
-        #define MASK_CLMULR  0xfe00707fL
-        #define MATCH_FFWIDTH 0xe000033
-        #define MASK_FFWIDTH  0xfe00707fL
-        #define MATCH_FFRED 0xe001033
-        #define MASK_FFRED  0xfe00707fL
+        #define MATCH_FFADD 0xb
+        #define MASK_FFADD  0xfe00707f
+        #define MATCH_FFMUL1 0x100b
+        #define MASK_FFMUL1  0xfe00707f
+        #define MATCH_FFMUL2 0x200100b
+        #define MASK_FFMUL2  0xfe00707f
+        #define MATCH_FFINV 0x200b
+        #define MASK_FFINV  0xfe00707f
     ```
     - Add the following riscv_opcodes struct inside **riscv-opc.c**
     ```c
-        {"clmul",       0, INSN_CLASS_I,   "d,s,t",  MATCH_CLMUL, MASK_CLMUL, match_opcode, 0 },
-        {"clmulh",      0, INSN_CLASS_I,   "d,s,t",  MATCH_CLMULH, MASK_CLMULH, match_opcode, 0 },
-        {"clmulr",      0, INSN_CLASS_I,   "d,s,t",  MATCH_CLMULR, MASK_CLMULR, match_opcode, 0 },
-        {"ffwidth",     0, INSN_CLASS_I,   "d,s,t",  MATCH_FFWIDTH, MASK_FFWIDTH, match_opcode, 0 },
-        {"ffred",       0, INSN_CLASS_I,   "d,s,t",  MATCH_FFRED, MASK_FFRED, match_opcode, 0 },
+        {"ffadd",      0, INSN_CLASS_I,  "d,s,t", MATCH_FFADD, MASK_FFADD, match_opcode, 0 },
+        {"ffmul1",      0, INSN_CLASS_I,  "d,s,t", MATCH_FFMUL1, MASK_FFMUL1, match_opcode, 0 },
+        {"ffmul2",      0, INSN_CLASS_I,  "d,s,t", MATCH_FFMUL2, MASK_FFMUL2, match_opcode, 0 },
+        {"ffinv",      0, INSN_CLASS_I,  "d,s,t", MATCH_FFINV, MASK_FFINV, match_opcode, 0 },
     ```
   
 4. make && make install (inside the binutils and/or gdb build directory).
