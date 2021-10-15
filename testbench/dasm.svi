@@ -336,21 +336,33 @@ string mn;
         0: mn = "ffwidth";
         1: mn = "ffred";
         endcase
-    else if(opcode[31:25]==21)
-        case(opcode[14:12])
-        0: mn = "aes32dsi";
+    else if(opcode[29:25]==21)
+        case(opcode[31:30])
+        0: mn = "aes32dsi1";
+        1: mn = "aes32dsi2";
+        2: mn = "aes32dsi3";
+        3: mn = "aes32dsi4";
         endcase
-    else if(opcode[31:25]==23)
-        case(opcode[14:12])
-        0: mn = "aes32dsmi";
+    else if(opcode[29:25]==23)
+        case(opcode[31:30])
+        0: mn = "aes32dsmi1";
+        1: mn = "aes32dsmi2";
+        2: mn = "aes32dsmi3";
+        3: mn = "aes32dsmi4";
         endcase
-    else if(opcode[31:25]==11)
-        case(opcode[14:12])
-        0: mn = "aes32esi";
+    else if(opcode[29:25]==11)
+        case(opcode[31:30])
+        0: mn = "aes32esi1";
+        1: mn = "aes32esi2";
+        2: mn = "aes32esi3";
+        3: mn = "aes32esi4";
         endcase
-    else if(opcode[31:25]==13)
-        case(opcode[14:12])
-        0: mn = "aes32esmi";
+    else if(opcode[29:25]==13)
+        case(opcode[31:30])
+        0: mn = "aes32esmi1";
+        1: mn = "aes32esmi2";
+        2: mn = "aes32esmi3";
+        3: mn = "aes32esmi4";
         endcase
     else
         case(opcode[14:12])
