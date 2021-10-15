@@ -51,10 +51,10 @@ int main(void)
             );  
 #endif
     //exit = test_decrypt_ecb();
-    exit = test_encrypt_cbc() + test_decrypt_cbc() +
-	test_encrypt_ctr() + test_decrypt_ctr() +
-	test_encrypt_ecb() + test_decrypt_ecb();
-    test_encrypt_ecb_verbose();
+    exit = test_decrypt_cbc();// + test_decrypt_cbc() +
+	//test_encrypt_ctr(); //+ test_decrypt_ctr() +
+	//test_encrypt_ecb(); //+ test_decrypt_ecb();
+    //test_encrypt_ecb_verbose();
 
     return exit;
 }
@@ -147,6 +147,11 @@ static int test_encrypt_ecb(void)
     long time1,time2;
     time1 = get_mcycle();
     AES_init_ctx(&ctx, key);
+    int i = 0;
+    /*for (i = (uint8_t) 0; i < (uint16_t) 176; ++i)
+    {
+    printf("%d: %02x\n", i,ctx.RoundKey[i]);
+    }*/
     AES_ECB_encrypt(&ctx, in);
     time2 = get_mcycle();
 #ifdef PRINT_LOG
@@ -155,7 +160,7 @@ static int test_encrypt_ecb(void)
         printf("SUCCESS! \t %d cycles\n",time2-time1);
 	return(0);
     } else {
-        printf("FAILURE!\n");
+        printf("FAILURE! \t %d cycles\n",time2-time1);
 	return(1);
     }
 #endif

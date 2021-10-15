@@ -84,6 +84,7 @@ import el2_pkg::*;
    logic                ap_aes32dsi;
    logic                ap_aes32dsmi;
    logic                ap_aes32;
+   logic                ap_aes1,ap_aes2,ap_aes3,ap_aes4;
 
 
    if (pt.BITMANIP_ZBE == 1)
@@ -112,10 +113,16 @@ import el2_pkg::*;
    
    if (pt.BITMANIP_ZBG == 1)
      begin
-       assign ap_aes32esi     =  mul_p.aes32esi;
-       assign ap_aes32esmi    =  mul_p.aes32esmi;
-       assign ap_aes32dsi     =  mul_p.aes32dsi;
-       assign ap_aes32dsmi    =  mul_p.aes32dsmi;
+       assign ap_aes32esi     =  mul_p.aes32esi1 | mul_p.aes32esi2 | mul_p.aes32esi3 | mul_p.aes32esi4;
+       assign ap_aes32esmi    =  mul_p.aes32esmi1 | mul_p.aes32esmi2 | mul_p.aes32esmi3 | mul_p.aes32esmi4;
+       assign ap_aes32dsi     =  mul_p.aes32dsi1 | mul_p.aes32dsi2 | mul_p.aes32dsi3 | mul_p.aes32dsi4;
+       assign ap_aes32dsmi    =  mul_p.aes32dsmi1 | mul_p.aes32dsmi2 | mul_p.aes32dsmi3 | mul_p.aes32dsmi4;
+
+       assign ap_aes32 = ap_aes32esi | ap_aes32esmi | ap_aes32dsi | ap_aes32dsmi;
+       assign ap_aes1 = mul_p.aes32esi1 | mul_p.aes32esmi1 | mul_p.aes32dsi1 | mul_p.aes32dsmi1;
+       assign ap_aes2 = mul_p.aes32esi2 | mul_p.aes32esmi2 | mul_p.aes32dsi2 | mul_p.aes32dsmi2;
+       assign ap_aes3 = mul_p.aes32esi3 | mul_p.aes32esmi3 | mul_p.aes32dsi3 | mul_p.aes32dsmi3;
+       assign ap_aes4 = mul_p.aes32esi4 | mul_p.aes32esmi4 | mul_p.aes32dsi4 | mul_p.aes32dsmi4;
      end
    else
      begin
@@ -123,6 +130,11 @@ import el2_pkg::*;
        assign ap_aes32esmi    =  1'b0;
        assign ap_aes32dsi     =  1'b0;
        assign ap_aes32dsmi    =  1'b0;
+       assign ap_aes32        =  1'b0;
+       assign ap_aes1         =  1'b0;
+       assign ap_aes2         =  1'b0;
+       assign ap_aes3         =  1'b0;
+       assign ap_aes4         =  1'b0;
      end
 
    if (pt.BITMANIP_ZBP == 1)
@@ -200,15 +212,25 @@ import el2_pkg::*;
 
    logic  [31:0]  aes_rd;
    logic          aes_ready;
-   assign ap_aes32 = ap_aes32esi | ap_aes32esmi | ap_aes32dsi | ap_aes32dsmi;
+   logic  [1:0]   bs;
    
 
-   riscv_crypto_fu_saes32 riscv_aes(
+   always @(ap_aes32) begin
+     case ({ap_aes1,ap_aes2,ap_aes3,ap_aes4})
+      4'b1000 : bs = 0;
+      4'b0100 : bs = 1;
+      4'b0010 : bs = 2;
+      4'b0001 : bs = 3;
+      default : bs = 0;
+     endcase
+   end
+
+   riscv_crypto_fu_saes32 #(1) riscv_aes(
 
     .valid(ap_aes32),        
     .rs1(rs1_in),
     .rs2(rs2_in),
-    .bs(2'b0),
+    .bs(bs),
     .op_saes32_encs(ap_aes32esi),         // Encrypt SubBytes
     .op_saes32_encsm(ap_aes32esmi),       // Encrypt SubBytes + MixColumn
     .op_saes32_decs(ap_aes32dsi),         // Decrypt SubBytes

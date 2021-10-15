@@ -203,10 +203,22 @@ typedef struct packed {
                       } el2_lsu_error_pkt_t;
 
 typedef struct packed {
-                       logic aes32esi;
-                       logic aes32esmi;
-                       logic aes32dsi;
-                       logic aes32dsmi;
+                       logic aes32esi1;
+                       logic aes32esmi1;
+                       logic aes32dsi1;
+                       logic aes32dsmi1;
+                       logic aes32esi2;
+                       logic aes32esmi2;
+                       logic aes32dsi2;
+                       logic aes32dsmi2;
+                       logic aes32esi3;
+                       logic aes32esmi3;
+                       logic aes32dsi3;
+                       logic aes32dsmi3;
+                       logic aes32esi4;
+                       logic aes32esmi4;
+                       logic aes32dsi4;
+                       logic aes32dsmi4;
                        logic clz;
                        logic ctz;
                        logic pcnt;
@@ -307,10 +319,22 @@ typedef struct packed {
 
 
 typedef struct packed {
-                       logic aes32esi;
-                       logic aes32esmi;
-                       logic aes32dsi;
-                       logic aes32dsmi;
+                       logic aes32esi1;
+                       logic aes32esmi1;
+                       logic aes32dsi1;
+                       logic aes32dsmi1;
+                       logic aes32esi2;
+                       logic aes32esmi2;
+                       logic aes32dsi2;
+                       logic aes32dsmi2;
+                       logic aes32esi3;
+                       logic aes32esmi3;
+                       logic aes32dsi3;
+                       logic aes32dsmi3;
+                       logic aes32esi4;
+                       logic aes32esmi4;
+                       logic aes32dsi4;
+                       logic aes32dsmi4;
                        logic valid;
                        logic rs1_sign;
                        logic rs2_sign;

@@ -256,10 +256,25 @@ divu =       [0000001..........101.....0110011]
 rem =        [0000001..........110.....0110011]
 remu =       [0000001..........111.....0110011]
 
-aes32esi =   [0010001..........000.....0110011]
-aes32esmi =  [0010011..........000.....0110011]
-aes32dsi =   [0010101..........000.....0110011]
-aes32dsmi =  [0010111..........000.....0110011]
+aes32esi1  = [0010001..........000.....0110011]
+aes32esmi1 = [0010011..........000.....0110011]
+aes32dsi1  = [0010101..........000.....0110011]
+aes32dsmi1 = [0010111..........000.....0110011]
+
+aes32esi2  = [0110001..........000.....0110011]
+aes32esmi2 = [0110011..........000.....0110011]
+aes32dsi2  = [0110101..........000.....0110011]
+aes32dsmi2 = [0110111..........000.....0110011]
+
+aes32esi3  = [1010001..........000.....0110011]
+aes32esmi3 = [1010011..........000.....0110011]
+aes32dsi3  = [1010101..........000.....0110011]
+aes32dsmi3 = [1010111..........000.....0110011]
+
+aes32esi4  = [1110001..........000.....0110011]
+aes32esmi4 = [1110011..........000.....0110011]
+aes32dsi4  = [1110101..........000.....0110011]
+aes32dsmi4 = [1110111..........000.....0110011]
 
 
 .input
@@ -303,10 +318,22 @@ rv32i = {
 .output
 
 rv32i = {
-      aes32esi
-      aes32esmi
-      aes32dsi
-      aes32dsmi
+      aes32esi1
+      aes32esmi1
+      aes32dsi1
+      aes32dsmi1
+      aes32esi2
+      aes32esmi2
+      aes32dsi2
+      aes32dsmi2
+      aes32esi3
+      aes32esmi3
+      aes32dsi3
+      aes32dsmi3
+      aes32esi4
+      aes32esmi4
+      aes32dsi4
+      aes32dsmi4
       alu
       rs1
       rs2
@@ -450,10 +477,25 @@ rv32i[clmul]     =  { mul zbc     rs1 rs2 rd                       clmul }
 rv32i[clmulh]    =  { mul zbc     rs1 rs2 rd                       clmulh}
 rv32i[clmulr]    =  { mul zbc     rs1 rs2 rd                       clmulr}
 
-rv32i[aes32esi]  =  { mul zbg     rs1 rs2 rd                       aes32esi}
-rv32i[aes32esmi] =  { mul zbg     rs1 rs2 rd                       aes32esmi}
-rv32i[aes32dsi]  =  { mul zbg     rs1 rs2 rd                       aes32dsi}
-rv32i[aes32dsmi] =  { mul zbg     rs1 rs2 rd                       aes32dsmi}
+rv32i[aes32esi1]  =  { mul zbg     rs1 rs2 rd                       aes32esi1}
+rv32i[aes32esmi1] =  { mul zbg     rs1 rs2 rd                       aes32esmi1}
+rv32i[aes32dsi1]  =  { mul zbg     rs1 rs2 rd                       aes32dsi1}
+rv32i[aes32dsmi1] =  { mul zbg     rs1 rs2 rd                       aes32dsmi1}
+
+rv32i[aes32esi2]  =  { mul zbg     rs1 rs2 rd                       aes32esi2}
+rv32i[aes32esmi2] =  { mul zbg     rs1 rs2 rd                       aes32esmi2}
+rv32i[aes32dsi2]  =  { mul zbg     rs1 rs2 rd                       aes32dsi2}
+rv32i[aes32dsmi2] =  { mul zbg     rs1 rs2 rd                       aes32dsmi2}
+
+rv32i[aes32esi3]  =  { mul zbg     rs1 rs2 rd                       aes32esi3}
+rv32i[aes32esmi3] =  { mul zbg     rs1 rs2 rd                       aes32esmi3}
+rv32i[aes32dsi3]  =  { mul zbg     rs1 rs2 rd                       aes32dsi3}
+rv32i[aes32dsmi3] =  { mul zbg     rs1 rs2 rd                       aes32dsmi3}
+
+rv32i[aes32esi4]  =  { mul zbg     rs1 rs2 rd                       aes32esi4}
+rv32i[aes32esmi4] =  { mul zbg     rs1 rs2 rd                       aes32esmi4}
+rv32i[aes32dsi4]  =  { mul zbg     rs1 rs2 rd                       aes32dsi4}
+rv32i[aes32dsmi4] =  { mul zbg     rs1 rs2 rd                       aes32dsmi4}
 
 rv32i[crc32_b]   =  { mul zbr     rs1     rd                       crc32_b}
 rv32i[crc32_h]   =  { mul zbr     rs1     rd                       crc32_h}

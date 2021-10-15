@@ -60,8 +60,6 @@ NOTE:   String length must be evenly divisible by 16byte (str_len % 16 == 0)
 void coef_mult(uint8_t *a, uint8_t *b, uint8_t *d);
 static uint8_t Multiply(uint8_t x, uint8_t y);
 
-extern uint64_t get_mcycle();
-
 
 /*****************************************************************************/
 /* Private variables:                                                        */
@@ -430,9 +428,398 @@ static void InvShiftRows(state_t* state)
 }
 #endif // #if (defined(CBC) && CBC == 1) || (defined(ECB) && ECB == 1)
 
+static uint32_t arrangeMatrix(state_t* state, uint8_t c)
+{
+  return ((uint32_t) (*state)[c][0]) | (((uint32_t) (*state)[c][1]) << 8) |
+		(((uint32_t) (*state)[c][2]) << 16) | (((uint32_t) (*state)[c][3]) << 24);
+}
+
+static void arrangeInvMatrix(state_t* state, uint32_t result, uint8_t c)
+{
+  (*state)[c][0] = result & 0xFF;
+  (*state)[c][1] = (result>>8) & 0xFF;
+  (*state)[c][2] = (result>>16) & 0xFF;
+  (*state)[c][3] = (result>>24) & 0xFF;
+}
+
+static uint32_t arrangeKey(uint8_t round, const uint8_t* RoundKey, uint8_t c)
+{
+  return ((uint32_t) RoundKey[(round * Nb * 4) + (c * Nb) + 0]) | (((uint32_t) RoundKey[(round * Nb * 4) + (c * Nb) + 1]) << 8) |
+		(((uint32_t) RoundKey[(round * Nb * 4) + (c * Nb) + 2]) << 16) | (((uint32_t) RoundKey[(round * Nb * 4) + (c * Nb) + 3]) << 24);
+}
+
 // Cipher is the main function that encrypts the PlainText.
 static void Cipher(state_t* state, const uint8_t* RoundKey)
 {
+#ifdef AES_INSTR
+  uint8_t round = 0;
+  uint32_t t0, t1, t2, t3;				//  even round state registers
+	uint32_t u0, u1, u2, u3;				//  odd round state registers
+
+  // Add the First round key to the state before starting the rounds.
+  AddRoundKey(0, state, RoundKey);
+
+  // There will be Nr rounds.
+  // The first Nr-1 rounds are identical.
+  // These Nr rounds are executed in the loop below.
+  // Last one without MixColumns()
+  /*for (round = 1; round < Nr; ++round)
+  {
+    SubBytes(state);
+    ShiftRows(state);
+    MixColumns(state);
+    AddRoundKey(round, state, RoundKey);
+  }*/
+  round = 1;
+  t0 = arrangeMatrix(state, 0);
+  t1 = arrangeMatrix(state, 1);
+  t2 = arrangeMatrix(state, 2);
+  t3 = arrangeMatrix(state, 3);
+
+  while (1) {
+    u0 = arrangeKey(round,RoundKey,0);
+    u1 = arrangeKey(round,RoundKey,1);
+    u2 = arrangeKey(round,RoundKey,2);
+    u3 = arrangeKey(round,RoundKey,3);
+
+    asm volatile
+            (   
+                "aes32esmi1   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)u0)
+                : [x] "r" ((uint32_t)u0), [y] "r" ((uint32_t)t0)
+            );  
+    asm volatile
+            (   
+                "aes32esmi2   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)u0)
+                : [x] "r" ((uint32_t)u0), [y] "r" ((uint32_t)t1)
+            ); 
+    asm volatile
+            (   
+                "aes32esmi3   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)u0)
+                : [x] "r" ((uint32_t)u0), [y] "r" ((uint32_t)t2)
+            );  
+    asm volatile
+            (   
+                "aes32esmi4   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)u0)
+                : [x] "r" ((uint32_t)u0), [y] "r" ((uint32_t)t3)
+            );   
+
+    asm volatile
+            (   
+                "aes32esmi1   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)u1)
+                : [x] "r" ((uint32_t)u1), [y] "r" ((uint32_t)t1)
+            );  
+    asm volatile
+            (   
+                "aes32esmi2   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)u1)
+                : [x] "r" ((uint32_t)u1), [y] "r" ((uint32_t)t2)
+            ); 
+    asm volatile
+            (   
+                "aes32esmi3   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)u1)
+                : [x] "r" ((uint32_t)u1), [y] "r" ((uint32_t)t3)
+            );  
+    asm volatile
+            (   
+                "aes32esmi4   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)u1)
+                : [x] "r" ((uint32_t)u1), [y] "r" ((uint32_t)t0)
+            ); 
+    
+    asm volatile
+            (   
+                "aes32esmi1   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)u2)
+                : [x] "r" ((uint32_t)u2), [y] "r" ((uint32_t)t2)
+            );  
+    asm volatile
+            (   
+                "aes32esmi2   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)u2)
+                : [x] "r" ((uint32_t)u2), [y] "r" ((uint32_t)t3)
+            ); 
+    asm volatile
+            (   
+                "aes32esmi3   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)u2)
+                : [x] "r" ((uint32_t)u2), [y] "r" ((uint32_t)t0)
+            );  
+    asm volatile
+            (   
+                "aes32esmi4   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)u2)
+                : [x] "r" ((uint32_t)u2), [y] "r" ((uint32_t)t1)
+            ); 
+
+    asm volatile
+            (   
+                "aes32esmi1   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)u3)
+                : [x] "r" ((uint32_t)u3), [y] "r" ((uint32_t)t3)
+            );  
+    asm volatile
+            (   
+                "aes32esmi2   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)u3)
+                : [x] "r" ((uint32_t)u3), [y] "r" ((uint32_t)t0)
+            ); 
+    asm volatile
+            (   
+                "aes32esmi3   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)u3)
+                : [x] "r" ((uint32_t)u3), [y] "r" ((uint32_t)t1)
+            );  
+    asm volatile
+            (   
+                "aes32esmi4   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)u3)
+                : [x] "r" ((uint32_t)u3), [y] "r" ((uint32_t)t2)
+            ); 
+
+    round++;
+
+    t0 = arrangeKey(round,RoundKey,0);
+    t1 = arrangeKey(round,RoundKey,1);
+    t2 = arrangeKey(round,RoundKey,2);
+    t3 = arrangeKey(round,RoundKey,3);
+
+    if (round == Nr)
+      break;
+
+    asm volatile
+            (   
+                "aes32esmi1   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t0)
+                : [x] "r" ((uint32_t)t0), [y] "r" ((uint32_t)u0)
+            );  
+    asm volatile
+            (   
+                "aes32esmi2   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t0)
+                : [x] "r" ((uint32_t)t0), [y] "r" ((uint32_t)u1)
+            ); 
+    asm volatile
+            (   
+                "aes32esmi3   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t0)
+                : [x] "r" ((uint32_t)t0), [y] "r" ((uint32_t)u2)
+            );  
+    asm volatile
+            (   
+                "aes32esmi4   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t0)
+                : [x] "r" ((uint32_t)t0), [y] "r" ((uint32_t)u3)
+            ); 
+
+    asm volatile
+            (   
+                "aes32esmi1   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t1)
+                : [x] "r" ((uint32_t)t1), [y] "r" ((uint32_t)u1)
+            );  
+    asm volatile
+            (   
+                "aes32esmi2   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t1)
+                : [x] "r" ((uint32_t)t1), [y] "r" ((uint32_t)u2)
+            ); 
+    asm volatile
+            (   
+                "aes32esmi3   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t1)
+                : [x] "r" ((uint32_t)t1), [y] "r" ((uint32_t)u3)
+            );  
+    asm volatile
+            (   
+                "aes32esmi4   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t1)
+                : [x] "r" ((uint32_t)t1), [y] "r" ((uint32_t)u0)
+            ); 
+
+    asm volatile
+            (   
+                "aes32esmi1   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t2)
+                : [x] "r" ((uint32_t)t2), [y] "r" ((uint32_t)u2)
+            );  
+    asm volatile
+            (   
+                "aes32esmi2   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t2)
+                : [x] "r" ((uint32_t)t2), [y] "r" ((uint32_t)u3)
+            ); 
+    asm volatile
+            (   
+                "aes32esmi3   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t2)
+                : [x] "r" ((uint32_t)t2), [y] "r" ((uint32_t)u0)
+            );  
+    asm volatile
+            (   
+                "aes32esmi4   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t2)
+                : [x] "r" ((uint32_t)t2), [y] "r" ((uint32_t)u1)
+            ); 
+
+    asm volatile
+            (   
+                "aes32esmi1   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t3)
+                : [x] "r" ((uint32_t)t3), [y] "r" ((uint32_t)u3)
+            );  
+    asm volatile
+            (   
+                "aes32esmi2   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t3)
+                : [x] "r" ((uint32_t)t3), [y] "r" ((uint32_t)u0)
+            ); 
+    asm volatile
+            (   
+                "aes32esmi3   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t3)
+                : [x] "r" ((uint32_t)t3), [y] "r" ((uint32_t)u1)
+            );  
+    asm volatile
+            (   
+                "aes32esmi4   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t3)
+                : [x] "r" ((uint32_t)t3), [y] "r" ((uint32_t)u2)
+            ); 
+
+    round++;
+  }
+
+  /*t0 = arrangeKey(Nr,RoundKey,0);
+  t1 = arrangeKey(Nr,RoundKey,1);
+  t2 = arrangeKey(Nr,RoundKey,2);
+  t3 = arrangeKey(Nr,RoundKey,3);
+
+
+  u0 = arrangeMatrix(state, 0);
+  u1 = arrangeMatrix(state, 1);
+  u2 = arrangeMatrix(state, 2);
+  u3 = arrangeMatrix(state, 3);*/
+
+  //printf("%02x\n", u0);
+  //printf("%02x\n", u1);
+  //printf("%02x\n", u2);
+  //printf("%02x\n", u3);
+
+  asm volatile
+            (   
+                "aes32esi1   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t0)
+                : [x] "r" ((uint32_t)t0), [y] "r" ((uint32_t)u0)
+            );  
+  asm volatile
+            (   
+                "aes32esi2   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t0)
+                : [x] "r" ((uint32_t)t0), [y] "r" ((uint32_t)u1)
+            );  
+  asm volatile
+            (   
+                "aes32esi3   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t0)
+                : [x] "r" ((uint32_t)t0), [y] "r" ((uint32_t)u2)
+            );  
+  asm volatile
+            (   
+                "aes32esi4   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t0)
+                : [x] "r" ((uint32_t)t0), [y] "r" ((uint32_t)u3)
+            );  
+
+  asm volatile
+            (   
+                "aes32esi1   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t1)
+                : [x] "r" ((uint32_t)t1), [y] "r" ((uint32_t)u1)
+            );  
+  asm volatile
+            (   
+                "aes32esi2   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t1)
+                : [x] "r" ((uint32_t)t1), [y] "r" ((uint32_t)u2)
+            );  
+  asm volatile
+            (   
+                "aes32esi3   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t1)
+                : [x] "r" ((uint32_t)t1), [y] "r" ((uint32_t)u3)
+            );  
+  asm volatile
+            (   
+                "aes32esi4   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t1)
+                : [x] "r" ((uint32_t)t1), [y] "r" ((uint32_t)u0)
+            );  
+
+  asm volatile
+            (   
+                "aes32esi1   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t2)
+                : [x] "r" ((uint32_t)t2), [y] "r" ((uint32_t)u2)
+            );  
+  asm volatile
+            (   
+                "aes32esi2   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t2)
+                : [x] "r" ((uint32_t)t2), [y] "r" ((uint32_t)u3)
+            );  
+  asm volatile
+            (   
+                "aes32esi3   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t2)
+                : [x] "r" ((uint32_t)t2), [y] "r" ((uint32_t)u0)
+            );  
+  asm volatile
+            (   
+                "aes32esi4   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t2)
+                : [x] "r" ((uint32_t)t2), [y] "r" ((uint32_t)u1)
+            );  
+
+  asm volatile
+            (   
+                "aes32esi1   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t3)
+                : [x] "r" ((uint32_t)t3), [y] "r" ((uint32_t)u3)
+            );  
+  asm volatile
+            (   
+                "aes32esi2   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t3)
+                : [x] "r" ((uint32_t)t3), [y] "r" ((uint32_t)u0)
+            );  
+  asm volatile
+            (   
+                "aes32esi3   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t3)
+                : [x] "r" ((uint32_t)t3), [y] "r" ((uint32_t)u1)
+            );  
+  asm volatile
+            (   
+                "aes32esi4   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t3)
+                : [x] "r" ((uint32_t)t3), [y] "r" ((uint32_t)u2)
+            );  
+
+  arrangeInvMatrix(state,t0,0);
+  arrangeInvMatrix(state,t1,1);
+  arrangeInvMatrix(state,t2,2);
+  arrangeInvMatrix(state,t3,3);
+  //SubBytes(state);
+  //ShiftRows(state);
+  //AddRoundKey(Nr, state, RoundKey);
+
+#else
   uint8_t round = 0;
 
   // Add the First round key to the state before starting the rounds.
@@ -442,30 +829,398 @@ static void Cipher(state_t* state, const uint8_t* RoundKey)
   // The first Nr-1 rounds are identical.
   // These Nr rounds are executed in the loop below.
   // Last one without MixColumns()
-  long time1,time2;
-  time1 = get_mcycle();
-  for (round = 1; ; ++round)
+  for (round = 1; round < Nr; ++round)
   {
-    
-    
     SubBytes(state);
     ShiftRows(state);
-    if (round == Nr) {
-      break;
-    }
     MixColumns(state);
     AddRoundKey(round, state, RoundKey);
   }
-  // Add round key to last round
+  /*uint8_t i, j;
+  for (i = 0; i < 4; ++i)
+  {
+    for (j = 0; j < 4; ++j)
+    {
+      printf("state %d %d: %02x\n",j,i,(*state)[j][i]);
+    }
+  }*/
+  SubBytes(state);
+  ShiftRows(state);
   AddRoundKey(Nr, state, RoundKey);
-  time1 = get_mcycle();
-  printf("Round: ");
-  printf("\t %d cycles\n",time2-time1);
+
+  /*printf("Despues \n");
+  for (i = 0; i < 4; ++i)
+  {
+    for (j = 0; j < 4; ++j)
+    {
+      printf("state %d %d: %02x\n",j,i,(*state)[j][i]);
+    }
+  }*/
+#endif
 }
 
 #if (defined(CBC) && CBC == 1) || (defined(ECB) && ECB == 1)
 static void InvCipher(state_t* state, const uint8_t* RoundKey)
 {
+#ifdef AES_INSTR
+
+  uint8_t round = 0;
+  uint32_t t0, t1, t2, t3;				//  even round state registers
+	uint32_t u0, u1, u2, u3;				//  odd round state registers
+
+  // Add the First round key to the state before starting the rounds.
+  AddRoundKey(Nr, state, RoundKey);
+
+  /*round = Nr-1;
+  t0 = arrangeMatrix(state, 0);
+  t1 = arrangeMatrix(state, 1);
+  t2 = arrangeMatrix(state, 2);
+  t3 = arrangeMatrix(state, 3);
+
+  while(1) {
+
+    u0 = arrangeKey(round,RoundKey,0);
+    u1 = arrangeKey(round,RoundKey,1);
+    u2 = arrangeKey(round,RoundKey,2);
+    u3 = arrangeKey(round,RoundKey,3);
+
+    asm volatile
+            (   
+                "aes32dsmi1   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)u0)
+                : [x] "r" ((uint32_t)u0), [y] "r" ((uint32_t)t0)
+            );  
+    asm volatile
+            (   
+                "aes32dsmi2   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)u0)
+                : [x] "r" ((uint32_t)u0), [y] "r" ((uint32_t)t3)
+            ); 
+    asm volatile
+            (   
+                "aes32dsmi3   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)u0)
+                : [x] "r" ((uint32_t)u0), [y] "r" ((uint32_t)t2)
+            );  
+    asm volatile
+            (   
+                "aes32dsmi4   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)u0)
+                : [x] "r" ((uint32_t)u0), [y] "r" ((uint32_t)t1)
+            );   
+
+    asm volatile
+            (   
+                "aes32dsmi1   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)u1)
+                : [x] "r" ((uint32_t)u1), [y] "r" ((uint32_t)t1)
+            );  
+    asm volatile
+            (   
+                "aes32dsmi2   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)u1)
+                : [x] "r" ((uint32_t)u1), [y] "r" ((uint32_t)t0)
+            ); 
+    asm volatile
+            (   
+                "aes32dsmi3   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)u1)
+                : [x] "r" ((uint32_t)u1), [y] "r" ((uint32_t)t3)
+            );  
+    asm volatile
+            (   
+                "aes32dsmi4   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)u1)
+                : [x] "r" ((uint32_t)u1), [y] "r" ((uint32_t)t2)
+            );   
+
+    asm volatile
+            (   
+                "aes32dsmi1   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)u2)
+                : [x] "r" ((uint32_t)u2), [y] "r" ((uint32_t)t2)
+            );  
+    asm volatile
+            (   
+                "aes32dsmi2   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)u2)
+                : [x] "r" ((uint32_t)u2), [y] "r" ((uint32_t)t1)
+            ); 
+    asm volatile
+            (   
+                "aes32dsmi3   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)u2)
+                : [x] "r" ((uint32_t)u2), [y] "r" ((uint32_t)t0)
+            );  
+    asm volatile
+            (   
+                "aes32dsmi4   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)u2)
+                : [x] "r" ((uint32_t)u2), [y] "r" ((uint32_t)t3)
+            );  
+
+    asm volatile
+            (   
+                "aes32dsmi1   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)u3)
+                : [x] "r" ((uint32_t)u3), [y] "r" ((uint32_t)t3)
+            );  
+    asm volatile
+            (   
+                "aes32dsmi2   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)u3)
+                : [x] "r" ((uint32_t)u3), [y] "r" ((uint32_t)t2)
+            ); 
+    asm volatile
+            (   
+                "aes32dsmi3   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)u3)
+                : [x] "r" ((uint32_t)u3), [y] "r" ((uint32_t)t1)
+            );  
+    asm volatile
+            (   
+                "aes32dsmi4   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)u3)
+                : [x] "r" ((uint32_t)u3), [y] "r" ((uint32_t)t0)
+            );    
+
+    round--;
+    
+    t0 = arrangeKey(round,RoundKey,0);
+    t1 = arrangeKey(round,RoundKey,1);
+    t2 = arrangeKey(round,RoundKey,2);
+    t3 = arrangeKey(round,RoundKey,3);
+
+    if (round == 0)
+      break;
+
+    asm volatile
+            (   
+                "aes32dsmi1   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t0)
+                : [x] "r" ((uint32_t)t0), [y] "r" ((uint32_t)u0)
+            );  
+    asm volatile
+            (   
+                "aes32dsmi2   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t0)
+                : [x] "r" ((uint32_t)t0), [y] "r" ((uint32_t)u3)
+            ); 
+    asm volatile
+            (   
+                "aes32dsmi3   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t0)
+                : [x] "r" ((uint32_t)t0), [y] "r" ((uint32_t)u2)
+            );  
+    asm volatile
+            (   
+                "aes32dsmi4   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t0)
+                : [x] "r" ((uint32_t)t0), [y] "r" ((uint32_t)u1)
+            );  
+
+    asm volatile
+            (   
+                "aes32dsmi1   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t1)
+                : [x] "r" ((uint32_t)t1), [y] "r" ((uint32_t)u1)
+            );  
+    asm volatile
+            (   
+                "aes32dsmi2   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t1)
+                : [x] "r" ((uint32_t)t1), [y] "r" ((uint32_t)u0)
+            ); 
+    asm volatile
+            (   
+                "aes32dsmi3   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t1)
+                : [x] "r" ((uint32_t)t1), [y] "r" ((uint32_t)u3)
+            );  
+    asm volatile
+            (   
+                "aes32dsmi4   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t1)
+                : [x] "r" ((uint32_t)t1), [y] "r" ((uint32_t)u2)
+            ); 
+
+    asm volatile
+            (   
+                "aes32dsmi1   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t2)
+                : [x] "r" ((uint32_t)t2), [y] "r" ((uint32_t)u2)
+            );  
+    asm volatile
+            (   
+                "aes32dsmi2   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t2)
+                : [x] "r" ((uint32_t)t2), [y] "r" ((uint32_t)u1)
+            ); 
+    asm volatile
+            (   
+                "aes32dsmi3   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t2)
+                : [x] "r" ((uint32_t)t2), [y] "r" ((uint32_t)u0)
+            );  
+    asm volatile
+            (   
+                "aes32dsmi4   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t2)
+                : [x] "r" ((uint32_t)t2), [y] "r" ((uint32_t)u3)
+            );   
+
+    asm volatile
+            (   
+                "aes32dsmi1   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t3)
+                : [x] "r" ((uint32_t)t3), [y] "r" ((uint32_t)u3)
+            );  
+    asm volatile
+            (   
+                "aes32dsmi2   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t3)
+                : [x] "r" ((uint32_t)t3), [y] "r" ((uint32_t)u2)
+            ); 
+    asm volatile
+            (   
+                "aes32dsmi3   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t3)
+                : [x] "r" ((uint32_t)t3), [y] "r" ((uint32_t)u1)
+            );  
+    asm volatile
+            (   
+                "aes32dsmi4   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t3)
+                : [x] "r" ((uint32_t)t3), [y] "r" ((uint32_t)u0)
+            );  
+    
+    round--;
+  }*/
+
+  for (round = Nr-1; round > 0; round--)
+  {
+    InvShiftRows(state);
+    InvSubBytes(state);
+    AddRoundKey(round, state, RoundKey);
+    InvMixColumns(state);
+  }
+
+  t0 = arrangeKey(0,RoundKey,0);
+  t1 = arrangeKey(0,RoundKey,1);
+  t2 = arrangeKey(0,RoundKey,2);
+  t3 = arrangeKey(0,RoundKey,3);
+
+  u0 = arrangeMatrix(state, 0);
+  u1 = arrangeMatrix(state, 1);
+  u2 = arrangeMatrix(state, 2);
+  u3 = arrangeMatrix(state, 3);
+
+  asm volatile
+            (   
+                "aes32dsi1   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t0)
+                : [x] "r" ((uint32_t)t0), [y] "r" ((uint32_t)u0)
+            );  
+  asm volatile
+            (   
+                "aes32dsi2   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t0)
+                : [x] "r" ((uint32_t)t0), [y] "r" ((uint32_t)u3)
+            );  
+  asm volatile
+            (   
+                "aes32dsi3   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t0)
+                : [x] "r" ((uint32_t)t0), [y] "r" ((uint32_t)u2)
+            );  
+  asm volatile
+            (   
+                "aes32dsi4   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t0)
+                : [x] "r" ((uint32_t)t0), [y] "r" ((uint32_t)u1)
+            );  
+
+  asm volatile
+            (   
+                "aes32dsi1   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t1)
+                : [x] "r" ((uint32_t)t1), [y] "r" ((uint32_t)u1)
+            );  
+  asm volatile
+            (   
+                "aes32dsi2   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t1)
+                : [x] "r" ((uint32_t)t1), [y] "r" ((uint32_t)u0)
+            );  
+  asm volatile
+            (   
+                "aes32dsi3   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t1)
+                : [x] "r" ((uint32_t)t1), [y] "r" ((uint32_t)u3)
+            );  
+  asm volatile
+            (   
+                "aes32dsi4   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t1)
+                : [x] "r" ((uint32_t)t1), [y] "r" ((uint32_t)u2)
+            );  
+
+  asm volatile
+            (   
+                "aes32dsi1   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t2)
+                : [x] "r" ((uint32_t)t2), [y] "r" ((uint32_t)u2)
+            );  
+  asm volatile
+            (   
+                "aes32dsi2   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t2)
+                : [x] "r" ((uint32_t)t2), [y] "r" ((uint32_t)u1)
+            );  
+  asm volatile
+            (   
+                "aes32dsi3   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t2)
+                : [x] "r" ((uint32_t)t2), [y] "r" ((uint32_t)u0)
+            );  
+  asm volatile
+            (   
+                "aes32dsi4   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t2)
+                : [x] "r" ((uint32_t)t2), [y] "r" ((uint32_t)u3)
+            ); 
+
+  asm volatile
+            (   
+                "aes32dsi1   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t3)
+                : [x] "r" ((uint32_t)t3), [y] "r" ((uint32_t)u3)
+            );  
+  asm volatile
+            (   
+                "aes32dsi2   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t3)
+                : [x] "r" ((uint32_t)t3), [y] "r" ((uint32_t)u2)
+            );  
+  asm volatile
+            (   
+                "aes32dsi3   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t3)
+                : [x] "r" ((uint32_t)t3), [y] "r" ((uint32_t)u1)
+            );  
+  asm volatile
+            (   
+                "aes32dsi4   %[z], %[x], %[y]\n\t"
+                : [z] "=r" ((uint32_t)t3)
+                : [x] "r" ((uint32_t)t3), [y] "r" ((uint32_t)u0)
+            );   
+
+  arrangeInvMatrix(state,t0,0);
+  arrangeInvMatrix(state,t1,1);
+  arrangeInvMatrix(state,t2,2);
+  arrangeInvMatrix(state,t3,3);
+
+#else
   uint8_t round = 0;
 
   // Add the First round key to the state before starting the rounds.
@@ -475,7 +1230,7 @@ static void InvCipher(state_t* state, const uint8_t* RoundKey)
   // The first Nr-1 rounds are identical.
   // These Nr rounds are executed in the loop below.
   // Last one without InvMixColumn()
-  for (round = (Nr - 1); ; --round)
+  /*for (round = (Nr - 1); ; --round)
   {
     InvShiftRows(state);
     InvSubBytes(state);
@@ -484,8 +1239,20 @@ static void InvCipher(state_t* state, const uint8_t* RoundKey)
       break;
     }
     InvMixColumns(state);
-  }
+  }*/
 
+  for (round = Nr-1; round > 0; round--)
+  {
+    InvShiftRows(state);
+    InvSubBytes(state);
+    AddRoundKey(round, state, RoundKey);
+    InvMixColumns(state);
+  }
+  InvShiftRows(state);
+  InvSubBytes(state);
+  AddRoundKey(0, state, RoundKey);
+
+#endif
 }
 #endif // #if (defined(CBC) && CBC == 1) || (defined(ECB) && ECB == 1)
 
