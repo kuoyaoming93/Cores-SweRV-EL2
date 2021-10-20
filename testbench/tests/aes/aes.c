@@ -871,7 +871,7 @@ static void InvCipher(state_t* state, const uint8_t* RoundKey)
   // Add the First round key to the state before starting the rounds.
   AddRoundKey(Nr, state, RoundKey);
 
-  /*round = Nr-1;
+  round = Nr-1;
   t0 = arrangeMatrix(state, 0);
   t1 = arrangeMatrix(state, 1);
   t2 = arrangeMatrix(state, 2);
@@ -1095,25 +1095,29 @@ static void InvCipher(state_t* state, const uint8_t* RoundKey)
             );  
     
     round--;
-  }*/
+  }
 
-  for (round = Nr-1; round > 0; round--)
+  /*round = Nr-1;
+  while(1)
   {
     InvShiftRows(state);
     InvSubBytes(state);
     AddRoundKey(round, state, RoundKey);
     InvMixColumns(state);
-  }
+    round--;
+    if(round==0)
+      break;
+  }*/
 
-  t0 = arrangeKey(0,RoundKey,0);
+  /*t0 = arrangeKey(0,RoundKey,0);
   t1 = arrangeKey(0,RoundKey,1);
   t2 = arrangeKey(0,RoundKey,2);
-  t3 = arrangeKey(0,RoundKey,3);
+  t3 = arrangeKey(0,RoundKey,3);*/
 
-  u0 = arrangeMatrix(state, 0);
+  /*u0 = arrangeMatrix(state, 0);
   u1 = arrangeMatrix(state, 1);
   u2 = arrangeMatrix(state, 2);
-  u3 = arrangeMatrix(state, 3);
+  u3 = arrangeMatrix(state, 3);*/
 
   asm volatile
             (   

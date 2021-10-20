@@ -50,11 +50,11 @@ int main(void)
                 : [x] "r" ((uint32_t)8), [y] "r" ((uint32_t)0x11B)
             );  
 #endif
-    //exit = test_decrypt_ecb();
-    exit = test_decrypt_cbc();// + test_decrypt_cbc() +
-	//test_encrypt_ctr(); //+ test_decrypt_ctr() +
-	//test_encrypt_ecb(); //+ test_decrypt_ecb();
-    //test_encrypt_ecb_verbose();
+
+    exit = test_decrypt_cbc() + test_decrypt_cbc() +
+	test_encrypt_ctr() + test_decrypt_ctr() +
+	test_encrypt_ecb() + test_decrypt_ecb();
+    test_encrypt_ecb_verbose();
 
     return exit;
 }
@@ -197,7 +197,7 @@ static int test_decrypt_ecb(void)
         printf("SUCCESS! \t %d cycles\n",time2-time1);
 	return(0);
     } else {
-        printf("FAILURE!\n");
+        printf("FAILURE! \t %d cycles\n",time2-time1);
 	return(1);
     }
 #endif
@@ -249,7 +249,7 @@ static int test_decrypt_cbc(void)
         printf("SUCCESS! \t %d cycles\n",time2-time1);
 	return(0);
     } else {
-        printf("FAILURE!\n");
+        printf("FAILURE! \t %d cycles\n",time2-time1);
 	return(1);
     }
 #endif 
@@ -297,7 +297,7 @@ static int test_encrypt_cbc(void)
         printf("SUCCESS! \t %d cycles\n",time2-time1);
 	return(0);
     } else {
-        printf("FAILURE!\n");
+        printf("FAILURE! \t %d cycles\n",time2-time1);
 	return(1);
     }
 #endif
@@ -359,7 +359,7 @@ static int test_xcrypt_ctr(const char* xcrypt)
         printf("SUCCESS! \t %d cycles\n",time2-time1);
 	return(0);
     } else {
-        printf("FAILURE!\n");
+        printf("FAILURE! \t %d cycles\n",time2-time1);
 	return(1);
     }
 #endif
