@@ -79,10 +79,18 @@ import el2_pkg::*;
    logic                ap_bfp;
 
    // ZBG
-   logic                ap_ffadd;
+   logic                ap_ffadd1;
+   logic                ap_ffadd2;
+   logic                ap_ffadd3;
    logic                ap_ffmul1;
    logic                ap_ffmul2;
-   logic                ap_ffinv;
+   logic                ap_ffmul3;
+   logic                ap_ffinv1;
+   logic                ap_ffinv2;
+   logic                ap_ffinv3;
+   logic                ap_ffsqr1;
+   logic                ap_ffsqr2;
+   logic                ap_ffsqr3;
 
 
    if (pt.BITMANIP_ZBE == 1)
@@ -154,17 +162,33 @@ import el2_pkg::*;
 
    if (pt.BITMANIP_ZBG == 1)
      begin
-       assign ap_ffadd        =  mul_p.ffadd;
+       assign ap_ffadd1       =  mul_p.ffadd1;
+       assign ap_ffadd2       =  mul_p.ffadd2;
+       assign ap_ffadd3       =  mul_p.ffadd3;
        assign ap_ffmul1       =  mul_p.ffmul1;
        assign ap_ffmul2       =  mul_p.ffmul2;
-       assign ap_ffinv        =  mul_p.ffinv;
+       assign ap_ffmul3       =  mul_p.ffmul3;
+       assign ap_ffinv1       =  mul_p.ffinv1;
+       assign ap_ffinv2       =  mul_p.ffinv2;
+       assign ap_ffinv3       =  mul_p.ffinv3;
+       assign ap_ffsqr1       =  mul_p.ffsqr1;
+       assign ap_ffsqr2       =  mul_p.ffsqr2;
+       assign ap_ffsqr3       =  mul_p.ffsqr3;
      end
    else
      begin
-       assign ap_ffadd        =  1'b0;
+       assign ap_ffadd1       =  1'b0;
+       assign ap_ffadd2       =  1'b0;
+       assign ap_ffadd3       =  1'b0;
        assign ap_ffmul1       =  1'b0;
        assign ap_ffmul2       =  1'b0;
-       assign ap_ffinv        =  1'b0;
+       assign ap_ffmul3       =  1'b0;
+       assign ap_ffinv1       =  1'b0;
+       assign ap_ffinv2       =  1'b0;
+       assign ap_ffinv3       =  1'b0;
+       assign ap_ffsqr1       =  1'b0;
+       assign ap_ffsqr2       =  1'b0;
+       assign ap_ffsqr3       =  1'b0;
      end
 
 
@@ -611,24 +635,32 @@ import el2_pkg::*;
 
    logic [5:0]      polyn_grade;
    logic [32:0]     polyn_red_in;
-   logic [31:0]     ffred_result;
+   logic [31:0]     ffred_result, ffred_result2;
    logic [31:0]     ffadd_result;
-   logic [31:0]     ffinv_result;
+   logic [31:0]     ffinv_result1, ffinv_result2, ffinv_result3;
 
    logic            ap_ffops;
-   logic            ap_ffmul;
+   logic            ap_ffadd, ap_ffmul, ap_ffinv, ap_ffsqr;
 
-   assign ap_ffops = ap_ffadd | ap_ffmul | ap_ffinv;
-   assign ap_ffmul = ap_ffmul1 | ap_ffmul2;
+   assign ap_ffops = ap_ffadd | ap_ffmul | ap_ffinv | ap_ffsqr;
+   assign ap_ffmul = ap_ffmul1 | ap_ffmul2 | ap_ffmul3;
+   assign ap_ffadd = ap_ffadd1 | ap_ffadd2 | ap_ffadd3;
+   assign ap_ffinv = ap_ffinv1 | ap_ffinv2 | ap_ffinv3;
+   assign ap_ffsqr = ap_ffsqr1 | ap_ffsqr2 | ap_ffsqr3;
 
    always @(ap_ffmul) begin
-     case ({ap_ffmul1,ap_ffmul2})
-      2'b10 : 
+     case ({ap_ffmul1,ap_ffmul2,ap_ffmul3})
+      3'b100 : 
       begin
         polyn_grade   = 8;
-        polyn_red_in  = 'h11D; // 11B
+        polyn_red_in  = 'h11B;
       end
-      2'b01 :
+      3'b010 :
+      begin
+        polyn_grade   = 8;
+        polyn_red_in  = 'h11D;
+      end
+      3'b001 :
       begin
         polyn_grade   = 12;
         polyn_red_in  = 'h1009;
@@ -659,9 +691,27 @@ import el2_pkg::*;
           .out(ffred_result)
         );
 
-        ffinv8 ffinv0 (
+        ffmul #(32) ffmul1 (
+          .polyn_grade(polyn_grade),
+          .polyn_red_in(polyn_red_in),
+          .in_a(rs1_in[31:0]),
+          .in_b(rs1_in[31:0]),
+          .out(ffred_result2)
+        );
+
+        ffinv_lut1 ffinv0 (
           .inv_in(rs1_in[31:0]),
-          .out(ffinv_result[31:0])
+          .out(ffinv_result1[31:0])
+        );
+
+        ffinv_lut2 ffinv1 (
+          .inv_in(rs1_in[31:0]),
+          .out(ffinv_result2[31:0])
+        );
+
+        ffinv_lut3 ffinv2 (
+          .inv_in(rs1_in[31:0]),
+          .out(ffinv_result3[31:0])
         );
 
      end
@@ -671,7 +721,11 @@ import el2_pkg::*;
        assign polyn_red_in   = 33'b0;
 
        assign ffred_result   = 32'b0;
+       assign ffred_result2  = 32'b0;
        assign ffadd_result   = 32'b0;
+       assign ffinv_result1  = 32'b0;
+       assign ffinv_result2  = 32'b0;
+       assign ffinv_result3  = 32'b0;
      end
 
 
@@ -698,7 +752,10 @@ import el2_pkg::*;
                                    ( {32{ap_bfp}}      &       bfp_result_d[31:0]  ) |
                                    ( {32{ap_ffadd}}    &       ffadd_result[31:0]  ) |
                                    ( {32{ap_ffmul}}    &       ffred_result[31:0]  ) |
-                                   ( {32{ap_ffinv}}    &       ffinv_result[31:0]  );
+                                   ( {32{ap_ffsqr}}    &       ffred_result2[31:0] ) |
+                                   ( {32{ap_ffinv1}}    &      ffinv_result1[31:0] ) |
+                                   ( {32{ap_ffinv2}}    &      ffinv_result2[31:0] ) |
+                                   ( {32{ap_ffinv3}}    &      ffinv_result3[31:0] );
 
 
 

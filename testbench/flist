@@ -47,10 +47,8 @@ $RV_ROOT/design/lib/el2_lib.sv
 -v $RV_ROOT/testbench/axi_lsu_dma_bridge.sv
 $RV_ROOT/design/exu/red_test.v
 $RV_ROOT/design/exu/cl_add.v
-$RV_ROOT/design/exu/ffmul.v
+$RV_ROOT/design/exu/ffmul.sv
 $RV_ROOT/design/exu/ffadd.v
-$RV_ROOT/design/exu/ffinv12.v
-$RV_ROOT/design/exu/ffinv8.v
-$RV_ROOT/design/exu/ffsqr.v
-$RV_ROOT/design/exu/ffmul12.v
-$RV_ROOT/design/exu/red12.v
+$RV_ROOT/design/exu/ffinv_lut1.sv
+$RV_ROOT/design/exu/ffinv_lut2.sv
+$RV_ROOT/design/exu/ffinv_lut3.sv

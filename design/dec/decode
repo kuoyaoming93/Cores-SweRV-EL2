@@ -252,10 +252,18 @@ divu =       [0000001..........101.....0110011]
 rem =        [0000001..........110.....0110011]
 remu =       [0000001..........111.....0110011]
 
-ffadd   =    [0000000..........000.....0001011]
+ffadd1  =    [0000000..........000.....0001011]
+ffadd2  =    [0000001..........000.....0001011]
+ffadd3  =    [0000010..........000.....0001011]
 ffmul1  =    [0000000..........001.....0001011]
 ffmul2  =    [0000001..........001.....0001011]
-ffinv   =    [0000000..........010.....0001011]
+ffmul3  =    [0000010..........001.....0001011]
+ffinv1  =    [0000000..........010.....0001011]
+ffinv2  =    [0000001..........010.....0001011]
+ffinv3  =    [0000010..........010.....0001011]
+ffsqr1  =    [0000000..........011.....0001011]
+ffsqr2  =    [0000001..........011.....0001011]
+ffsqr3  =    [0000010..........011.....0001011]
 
 .input
 
@@ -298,10 +306,18 @@ rv32i = {
 .output
 
 rv32i = {
-      ffadd
+      ffadd1
+      ffadd2
+      ffadd3
       ffmul1
       ffmul2
-      ffinv
+      ffmul3
+      ffinv1
+      ffinv2
+      ffinv3
+      ffsqr1
+      ffsqr2
+      ffsqr3
       alu
       rs1
       rs2
@@ -445,10 +461,18 @@ rv32i[clmul]     =  { mul zbc     rs1 rs2 rd                       clmul }
 rv32i[clmulh]    =  { mul zbc     rs1 rs2 rd                       clmulh}
 rv32i[clmulr]    =  { mul zbc     rs1 rs2 rd                       clmulr}
 
-rv32i[ffadd]     =  { mul zbg     rs1 rs2 rd                       ffadd}
+rv32i[ffadd1]    =  { mul zbg     rs1 rs2 rd                       ffadd1}
+rv32i[ffadd2]    =  { mul zbg     rs1 rs2 rd                       ffadd2}
+rv32i[ffadd3]    =  { mul zbg     rs1 rs2 rd                       ffadd3}
 rv32i[ffmul1]    =  { mul zbg     rs1 rs2 rd                       ffmul1}
 rv32i[ffmul2]    =  { mul zbg     rs1 rs2 rd                       ffmul2}
-rv32i[ffinv]     =  { mul zbg     rs1 rs2 rd                       ffinv}
+rv32i[ffmul3]    =  { mul zbg     rs1 rs2 rd                       ffmul3}
+rv32i[ffinv1]    =  { mul zbg     rs1 rs2 rd                       ffinv1}
+rv32i[ffinv2]    =  { mul zbg     rs1 rs2 rd                       ffinv2}
+rv32i[ffinv3]    =  { mul zbg     rs1 rs2 rd                       ffinv3}
+rv32i[ffsqr1]    =  { mul zbg     rs1 rs2 rd                       ffsqr1}
+rv32i[ffsqr2]    =  { mul zbg     rs1 rs2 rd                       ffsqr2}
+rv32i[ffsqr3]    =  { mul zbg     rs1 rs2 rd                       ffsqr3}
 
 rv32i[crc32_b]   =  { mul zbr     rs1     rd                       crc32_b}
 rv32i[crc32_h]   =  { mul zbr     rs1     rd                       crc32_h}

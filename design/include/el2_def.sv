@@ -297,10 +297,18 @@ typedef struct packed {
                        logic fence;
                        logic fence_i;
                        logic pm_alu;
-                       logic ffadd;
+                       logic ffadd1;
+                       logic ffadd2;
+                       logic ffadd3;
                        logic ffmul1;
                        logic ffmul2;
-                       logic ffinv;
+                       logic ffmul3;
+                       logic ffinv1;
+                       logic ffinv2;
+                       logic ffinv3;
+                       logic ffsqr1;
+                       logic ffsqr2;
+                       logic ffsqr3;
                        logic legal;
                        logic zbg;
                        } el2_dec_pkt_t;
@@ -327,10 +335,18 @@ typedef struct packed {
                        logic crc32c_h;
                        logic crc32c_w;
                        logic bfp;
-                       logic ffadd;
+                       logic ffadd1;
+                       logic ffadd2;
+                       logic ffadd3;
                        logic ffmul1;
                        logic ffmul2;
-                       logic ffinv;
+                       logic ffmul3;
+                       logic ffinv1;
+                       logic ffinv2;
+                       logic ffinv3;
+                       logic ffsqr1;
+                       logic ffsqr2;
+                       logic ffsqr3;
                        } el2_mul_pkt_t;
 
 typedef struct packed {
