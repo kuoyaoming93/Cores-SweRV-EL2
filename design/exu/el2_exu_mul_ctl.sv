@@ -251,9 +251,18 @@ import el2_pkg::*;
    // * * * * * * * * * * * * * * * * * *  BitManip  :  CLMUL, CLMULH, CLMULR  * * * * * * * * * * * * *
 
    logic        [62:0]    clmul_raw_d;
+   logic                  tmr;
+   assign tmr = (polyn_grade_d <=8) ? 1'b1 : 1'b0;
+   clmul32  clmul0(
+            .rs1(rs1_in[31:0]),
+            .rs2(rs2_in[31:0]),
+            .result(clmul_raw_d[62:0]),
+            .tmr(tmr)
+        );
+    //assign clmul_raw_d[62:16] = 0;
 
 
-   assign clmul_raw_d[62:0]      = ( {63{rs2_in[00]}} & {31'b0,rs1_in[31:0]      } ) ^
+   /*assign clmul_raw_d[62:0]      = ( {63{rs2_in[00]}} & {31'b0,rs1_in[31:0]      } ) ^
                                    ( {63{rs2_in[01]}} & {30'b0,rs1_in[31:0], 1'b0} ) ^
                                    ( {63{rs2_in[02]}} & {29'b0,rs1_in[31:0], 2'b0} ) ^
                                    ( {63{rs2_in[03]}} & {28'b0,rs1_in[31:0], 3'b0} ) ^
@@ -284,7 +293,7 @@ import el2_pkg::*;
                                    ( {63{rs2_in[28]}} & { 3'b0,rs1_in[31:0],28'b0} ) ^
                                    ( {63{rs2_in[29]}} & { 2'b0,rs1_in[31:0],29'b0} ) ^
                                    ( {63{rs2_in[30]}} & { 1'b0,rs1_in[31:0],30'b0} ) ^
-                                   ( {63{rs2_in[31]}} & {      rs1_in[31:0],31'b0} );
+                                   ( {63{rs2_in[31]}} & {      rs1_in[31:0],31'b0} );*/
 
 
 

@@ -47,3 +47,4 @@ $RV_ROOT/design/lib/el2_lib.sv
 -v $RV_ROOT/testbench/axi_lsu_dma_bridge.sv
 $RV_ROOT/design/exu/red_test.v
 $RV_ROOT/design/exu/cl_add.v
+$RV_ROOT/design/exu/clmul32.v
