@@ -3,5 +3,5 @@ GCC_PATH = /opt/riscv
 ABI = -mabi=ilp32 -march=rv32imac_zicsr
 NISTFLAGS = -O3 -fomit-frame-pointer -fPIC -no-pie
 TEST_CFLAGS = $(NISTFLAGS)
-OFILES = crt0.o aes.o printf.o test.o
-TEST_LIBS = -L $(GCC_PATH)/riscv64-unknown-elf/lib/rv32imac/ilp32 -L $(GCC_PATH)/lib/gcc/riscv64-unknown-elf/10.2.0/rv32imac/ilp32 -lc
+OFILES = crt0.o printf.o example.o galois.o crcgen.o berlekamp.o rs.o
+TEST_LIBS = -L $(GCC_PATH)/riscv64-unknown-elf/lib/rv32imac/ilp32 -L $(GCC_PATH)/lib/gcc/riscv64-unknown-elf/10.2.0/rv32imac/ilp32 -lc -lgcc -lnosys 

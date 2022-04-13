@@ -1,6 +1,6 @@
 CONF_PARAMS = -set build_axi4 -set bitmanip_zbc -set bitmanip_zbg -set fpga_optimize 1 -target typical_pd
 GCC_PATH = /opt/riscv
-ABI = -mabi=ilp32 -march=rv32imac
+ABI = -mabi=ilp32 -march=rv32imac_zicsr
 NISTFLAGS = -O3 -fomit-frame-pointer -fPIC -no-pie
 TEST_CFLAGS = $(NISTFLAGS)
 OFILES = crt0.o printf.o gf_inv.o

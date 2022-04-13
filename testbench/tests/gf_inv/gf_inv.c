@@ -2,7 +2,7 @@
 #include <stdint.h>
 
 #define NBITS 16
-#define CUSTOM_CODES
+//#define CUSTOM_CODES
 
 extern uint64_t get_mcycle();
 
@@ -170,7 +170,7 @@ int main (void)
 
     printf("%d cycles\n",time2-time1);
 	
-    printf("El producto es: %d\n", p);
-    printf("La inversa de A es: %d\n", inv);
+    printf("The product is: %d\n", p);
+    printf("The inverse of A is: %d\n", inv);
 	return 0;
 }
