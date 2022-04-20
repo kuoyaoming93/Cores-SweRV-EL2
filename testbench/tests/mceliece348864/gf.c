@@ -26,28 +26,14 @@ gf gf_add(gf in0, gf in1)
 gf gf_mul(gf in0, gf in1)
 {
 #ifdef CUSTOM_CODES
-	//uint32_t imm_result,result;
 	uint32_t result;
 
   	asm volatile
             (   
-                "ffmul2   %[z], %[x], %[y]\n\t"
+                "ffmul3   %[z], %[x], %[y]\n\t"
                 : [z] "=r" ((uint32_t)result)
                 : [x] "r" ((uint32_t)in0), [y] "r" ((uint32_t)in1)
             ); 
-
-    /*asm volatile
-                (   
-                    "clmul   %[z], %[x], %[y]\n\t"
-                    : [z] "=r" ((uint32_t)imm_result)
-                    : [x] "r" ((uint32_t)in0), [y] "r" ((uint32_t)in1)
-                );  
-    asm volatile
-                (   
-                    "ffred   %[z], %[x], %[y]\n\t"
-                    : [z] "=r" ((uint32_t)result)
-                    : [x] "r" ((uint32_t)0), [y] "r" ((uint32_t)imm_result)
-                );  */
     return (uint16_t) result;
 #else
 	int i;

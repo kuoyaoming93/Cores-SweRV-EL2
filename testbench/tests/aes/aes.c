@@ -331,18 +331,6 @@ static uint8_t Multiply(uint8_t x, uint8_t y)
                 : [z] "=r" ((uint32_t)result)
                 : [x] "r" ((uint32_t)x), [y] "r" ((uint32_t)y)
             ); 
-  /*asm volatile
-            (   
-                "clmul   %[z], %[x], %[y]\n\t"
-                : [z] "=r" ((uint32_t)imm_result)
-                : [x] "r" ((uint32_t)x), [y] "r" ((uint32_t)y)
-            );  
-  asm volatile
-            (   
-                "ffred   %[z], %[x], %[y]\n\t"
-                : [z] "=r" ((uint32_t)result)
-                : [x] "r" ((uint32_t)0), [y] "r" ((uint32_t)imm_result)
-            );  */
   return (uint8_t) result;
 #else
   uint8_t p = 0, i = 0, hbs = 0;
