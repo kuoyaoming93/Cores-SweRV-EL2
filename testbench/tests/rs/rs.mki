@@ -1,7 +1,0 @@
-CONF_PARAMS = -set build_axi4 -set bitmanip_zbc -set bitmanip_zbg -set fpga_optimize 1 -target typical_pd
-GCC_PATH = /opt/riscv
-ABI = -mabi=ilp32 -march=rv32imac
-NISTFLAGS = -O3 -fomit-frame-pointer -fPIC -no-pie
-TEST_CFLAGS = $(NISTFLAGS)
-OFILES = crt0.o printf.o test.o
-TEST_LIBS = -L $(GCC_PATH)/riscv64-unknown-elf/lib/rv32imac/ilp32 -L $(GCC_PATH)/lib/gcc/riscv64-unknown-elf/10.2.0/rv32imac/ilp32 -lc -lnosys

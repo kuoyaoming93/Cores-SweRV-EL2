@@ -25,7 +25,6 @@
   #define CTR 1
 #endif
 
-//#define CUSTOM_CODES
 #define AES_INSTR
 //#define AES128 1
 //#define AES192 1

@@ -324,22 +324,6 @@ void coef_mult(uint8_t *a, uint8_t *b, uint8_t *d) {
 //       See https://github.com/kokke/tiny-AES-c/pull/34
 static uint8_t Multiply(uint8_t x, uint8_t y)
 {
-#ifdef CUSTOM_CODES
-  uint32_t imm_result,result;
-  asm volatile
-            (   
-                "clmul   %[z], %[x], %[y]\n\t"
-                : [z] "=r" ((uint32_t)imm_result)
-                : [x] "r" ((uint32_t)x), [y] "r" ((uint32_t)y)
-            );  
-  asm volatile
-            (   
-                "ffred   %[z], %[x], %[y]\n\t"
-                : [z] "=r" ((uint32_t)result)
-                : [x] "r" ((uint32_t)0), [y] "r" ((uint32_t)imm_result)
-            );  
-  return (uint8_t) result;
-#else
   uint8_t p = 0, i = 0, hbs = 0;
 	for (i = 0; i < 8; i++) {
 		if (y & 1) {
@@ -351,7 +335,6 @@ static uint8_t Multiply(uint8_t x, uint8_t y)
 		y >>= 1;
 	}
 	return (uint8_t)p;
-#endif
 }
 
 #if (defined(CBC) && CBC == 1) || (defined(ECB) && ECB == 1)
