@@ -17,7 +17,7 @@
 CONF_PARAMS = -set build_axi4
 
 TEST_CFLAGS = -g -O3 -funroll-all-loops
-ABI = -mabi=ilp32 -march=rv32imac
+ABI = -mabi=ilp32 -march=rv32imac_zicsr
 
 # Check for RV_ROOT
 ifeq (,$(wildcard ${RV_ROOT}/configs/swerv.config))
