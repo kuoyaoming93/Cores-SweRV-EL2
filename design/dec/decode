@@ -156,13 +156,16 @@ clmul     =  [0000101..........001.....0110011]
 clmulr    =  [0000101..........010.....0110011]
 clmulh    =  [0000101..........011.....0110011]
 
-ffloads   =  [0000000..........000.....0001011]
-ffload    =  [0000001..........000.....0001011]
-ffloade   =  [0000010..........000.....0001011]
-ffmul1    =  [0001111..........001.....0001011]
-ffmul2    =  [0011111..........001.....0001011]
-ffmul3    =  [0101111..........001.....0001011]
-ffmul4    =  [0111111..........001.....0001011]
+ffloadas  =  [0000000..........000.....0001011]
+ffloada   =  [0000001..........000.....0001011]
+ffloadae  =  [0000010..........000.....0001011]
+ffloadbs  =  [0000000..........001.....0001011]
+ffloadb   =  [0000001..........001.....0001011]
+ffloadbe  =  [0000010..........001.....0001011]
+ffmul1    =  [0001111..........010.....0001011]
+ffmul2    =  [0011111..........010.....0001011]
+ffmul3    =  [0101111..........010.....0001011]
+ffmul4    =  [0111111..........010.....0001011]
 
 crc32_b   =  [011000010000.....001.....0010011]
 crc32_h   =  [011000010001.....001.....0010011]
@@ -434,9 +437,12 @@ rv32i = {
       sh3add
       zba
       pm_alu
-      ffloads
-      ffload 
-      ffloade
+      ffloadas
+      ffloada 
+      ffloadae
+      ffloadbs
+      ffloadb 
+      ffloadbe
       ffmul1 
       ffmul2
       ffmul3
@@ -489,13 +495,16 @@ rv32i[clmul]     =  { mul zbc     rs1 rs2 rd                       clmul }
 rv32i[clmulh]    =  { mul zbc     rs1 rs2 rd                       clmulh}
 rv32i[clmulr]    =  { mul zbc     rs1 rs2 rd                       clmulr}
 
-rv32i[ffloads]   =  { custom      rs1 rs2 rd                       ffloads}
-rv32i[ffload ]   =  { custom      rs1 rs2 rd                       ffload }
-rv32i[ffloade]   =  { custom      rs1 rs2 rd                       ffloade}
-rv32i[ffmul1 ]   =  { custom      rs1 rs2 rd                       ffmul1 }
-rv32i[ffmul2 ]   =  { custom      rs1 rs2 rd                       ffmul2 }
-rv32i[ffmul3 ]   =  { custom      rs1 rs2 rd                       ffmul3 }
-rv32i[ffmul4 ]   =  { custom      rs1 rs2 rd                       ffmul4 }
+rv32i[ffloadas]  =  { custom      rs1 rs2 rd                       ffloadas}
+rv32i[ffloada ]  =  { custom      rs1 rs2 rd                       ffloada }
+rv32i[ffloadae]  =  { custom      rs1 rs2 rd                       ffloadae}
+rv32i[ffloadbs]  =  { custom      rs1 rs2 rd                       ffloadbs}
+rv32i[ffloadb ]  =  { custom      rs1 rs2 rd                       ffloadb }
+rv32i[ffloadbe]  =  { custom      rs1 rs2 rd                       ffloadbe}
+rv32i[ffmul1 ]   =  { custom      rs1 rs2 rd                       ffmul1  }
+rv32i[ffmul2 ]   =  { custom      rs1 rs2 rd                       ffmul2  }
+rv32i[ffmul3 ]   =  { custom      rs1 rs2 rd                       ffmul3  }
+rv32i[ffmul4 ]   =  { custom      rs1 rs2 rd                       ffmul4  }
 
 rv32i[crc32_b]   =  { mul zbr     rs1     rd                       crc32_b}
 rv32i[crc32_h]   =  { mul zbr     rs1     rd                       crc32_h}

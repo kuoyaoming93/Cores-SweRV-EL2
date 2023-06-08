@@ -21,6 +21,8 @@ $RV_ROOT/design/dec/el2_dec_ib_ctl.sv
 $RV_ROOT/design/dec/el2_dec_tlu_ctl.sv
 $RV_ROOT/design/dec/el2_dec_trigger.sv
 $RV_ROOT/design/dec/el2_dec.sv
+$RV_ROOT/design/exu/custom/clmul.sv
+$RV_ROOT/design/exu/custom/ffmul.sv
 $RV_ROOT/design/exu/el2_exu_alu_ctl.sv
 $RV_ROOT/design/exu/el2_exu_mul_ctl.sv
 $RV_ROOT/design/exu/el2_exu_custom_ctl.sv
