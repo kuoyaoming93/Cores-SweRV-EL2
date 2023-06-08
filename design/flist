@@ -19,6 +19,7 @@ $RV_ROOT/design/dec/el2_dec_trigger.sv
 $RV_ROOT/design/dec/el2_dec.sv
 $RV_ROOT/design/exu/el2_exu_alu_ctl.sv
 $RV_ROOT/design/exu/el2_exu_mul_ctl.sv
+$RV_ROOT/design/exu/el2_exu_custom_ctl.sv
 $RV_ROOT/design/exu/el2_exu_div_ctl.sv
 $RV_ROOT/design/exu/el2_exu.sv
 $RV_ROOT/design/lsu/el2_lsu.sv

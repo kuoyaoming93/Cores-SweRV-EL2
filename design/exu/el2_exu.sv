@@ -56,6 +56,7 @@ import el2_pkg::*;
 
    input logic          dec_qual_lsu_d,                                // LSU instruction at D.  Use to quiet LSU operands
    input el2_mul_pkt_t mul_p,                                         // DEC {valid, operand signs, low, operand bypass}
+   input el2_custom_pkt_t custom_p,                                   // DEC custom packet
    input el2_div_pkt_t div_p,                                         // DEC {valid, unsigned, rem}
    input logic          dec_div_cancel,                                // Cancel the divide operation
 
@@ -269,7 +270,11 @@ import el2_pkg::*;
                           .finish_dly        ( exu_div_wren                ),   // O
                           .out               ( exu_div_result[31:0]        ));  // O
 
-
+   el2_exu_custom_ctl #(.pt(pt)) i_custom   (.*,
+                          .cp                ( custom_p                       ),   // I
+                          .rs1_in            ( muldiv_rs1_d[31:0] & {32{custom_p.valid}}                    ),   // I
+                          .rs2_in            ( i0_rs2_d[31:0]     & {32{custom_p.valid}}                    )    // I
+                          ); 
 
    assign exu_i0_result_x[31:0]    =  (mul_valid_x)  ?  mul_result_x[31:0]  :  alu_result_x[31:0];
 

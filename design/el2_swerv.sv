@@ -615,6 +615,8 @@ import el2_pkg::*;
 
    el2_mul_pkt_t  mul_p;
 
+   el2_custom_pkt_t  custom_p;
+
    el2_div_pkt_t  div_p;
    logic           dec_div_cancel;
 

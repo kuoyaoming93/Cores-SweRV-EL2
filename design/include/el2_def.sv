@@ -297,6 +297,14 @@ typedef struct packed {
                        logic fence_i;
                        logic pm_alu;
                        logic legal;
+                       logic custom;
+                       logic ffloads;
+                       logic ffload;
+                       logic ffloade;
+                       logic ffmul1;
+                       logic ffmul2;
+                       logic ffmul3;
+                       logic ffmul4;
                        } el2_dec_pkt_t;
 
 
@@ -325,6 +333,17 @@ typedef struct packed {
                        logic xperm_b;
                        logic xperm_h;
                        } el2_mul_pkt_t;
+
+typedef struct packed {
+                       logic ffmul1;
+                       logic ffmul2;
+                       logic ffmul3;
+                       logic ffmul4;
+                       logic ffloads;
+                       logic ffload;
+                       logic ffloade;
+                       logic valid;
+                      } el2_custom_pkt_t;
 
 typedef struct packed {
                        logic valid;

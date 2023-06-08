@@ -1,0 +1,2 @@
+OFILES = crt0.o main.o printf.o 
+TEST_CFLAGS = -O0
