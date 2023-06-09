@@ -77,6 +77,7 @@ import el2_pkg::*;
    input logic dma_dccm_stall_any,                    // stall any load/store at decode
 
    input logic exu_div_wren,                          // nonblocking divide write enable to GPR.
+   input logic exu_custom_wren,                       // nonblocking custom write enable to GPR.
 
    input logic dec_tlu_i0_kill_writeb_wb,             // I0 is flushed, don't writeback any results to arch state
    input logic dec_tlu_flush_lower_wb,                // trap lower flush
@@ -152,6 +153,7 @@ import el2_pkg::*;
 
    output el2_div_pkt_t    div_p,                    // divide packet
    output logic [4:0]       div_waddr_wb,             // DIV write address to GPR
+   output logic [4:0]       custom_waddr,             // Custom write address to GPR
    output logic             dec_div_cancel,           // cancel the divide operation
 
    output logic        dec_lsu_valid_raw_d,
@@ -246,6 +248,7 @@ import el2_pkg::*;
    logic               div_active_in;
    logic               div_active;
    logic               i0_nonblock_div_stall;
+   logic               i0_nonblock_custom_stall;
    logic               i0_div_prior_div_stall;
    logic               nonblock_div_cancel;
 
@@ -261,6 +264,7 @@ import el2_pkg::*;
    logic               i0_rs2_depend_i0_x, i0_rs2_depend_i0_r;
 
    logic               i0_div_decode_d;
+   logic               i0_custom_decode_d;
    logic               i0_load_block_d;
    logic [1:0]         i0_rs1_depth_d, i0_rs2_depth_d;
 
@@ -1069,6 +1073,7 @@ end : cam_array
                             i0_nonblock_load_stall |
                             i0_load_block_d |
                             i0_nonblock_div_stall |
+                            i0_nonblock_custom_stall |
                             i0_div_prior_div_stall;
 
    assign i0_block_d    = i0_block_raw_d | i0_store_stall_d | i0_load_stall_d;
@@ -1380,6 +1385,22 @@ end : cam_array
    assign dec_i0_wen_r              =  i0_wen_r   & ~r_d_in.i0div & ~i0_load_kill_wen_r;  // don't write a nonblock load 1st time down the pipe
    assign dec_i0_wdata_r[31:0]      =  i0_result_corr_r[31:0];
 
+   // custom stuff
+   logic custom_active;
+
+   always_ff @(posedge clk or negedge rst_l) begin
+      if (!rst_l) begin
+         custom_active <= 1'b0;
+      end else begin
+         if (i0_custom_decode_d) begin
+            custom_active <= 1'b1; 
+         end
+
+         if (exu_custom_wren) begin
+            custom_active <= 1'b0; 
+         end
+      end
+   end
 
    // divide stuff
    assign div_e1_to_r         = (x_d.i0div & x_d.i0valid) |
@@ -1395,6 +1416,7 @@ end : cam_array
    assign i0_nonblock_div_stall  = (dec_i0_rs1_en_d & div_active & (div_waddr_wb[4:0] == i0r.rs1[4:0])) |
                                    (dec_i0_rs2_en_d & div_active & (div_waddr_wb[4:0] == i0r.rs2[4:0]));
 
+   assign i0_nonblock_custom_stall = custom_active;
 
    assign div_flush              = (x_d.i0div & x_d.i0valid & (x_d.i0rd[4:0]==5'b0)                           ) |
                                    (x_d.i0div & x_d.i0valid & dec_tlu_flush_lower_r                           ) |
@@ -1410,6 +1432,7 @@ end : cam_array
 
 
    assign i0_div_decode_d            =  i0_legal_decode_d & i0_dp.div;
+   assign i0_custom_decode_d         =  i0_legal_decode_d & i0_dp.ffmul1;
 
 // for load_to_use_plus1, the load result data is merged in R stage instead of D
 
@@ -1443,6 +1466,7 @@ end : cam_array
 
 
    rvdffe #(.WIDTH(5),.OVERRIDE(1))  i0rdff  (.*, .en(i0_div_decode_d),        .din(i0r.rd[4:0]),             .dout(div_waddr_wb[4:0]));
+   rvdffe #(.WIDTH(5),.OVERRIDE(1))  i0rdff1 (.*, .en(i0_custom_decode_d),     .din(i0r.rd[4:0]),             .dout(custom_waddr[4:0]));
 
    rvdffe #(32) i0xinstff            (.*, .en(i0_x_data_en & trace_enable),    .din(i0_inst_d[31:0]),         .dout(i0_inst_x[31:0]));
    rvdffe #(32) i0cinstff            (.*, .en(i0_r_data_en & trace_enable),    .din(i0_inst_x[31:0]),         .dout(i0_inst_r[31:0]));

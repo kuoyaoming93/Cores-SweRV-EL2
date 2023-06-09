@@ -102,6 +102,8 @@ import el2_pkg::*;
    output logic         exu_pmu_i0_br_ataken,                          // to PMU - I0 E4 taken
    output logic         exu_pmu_i0_pc4,                                // to PMU - I0 E4 PC
 
+   output logic [31:0]  exu_custom_result,                             // Custom result
+   output logic         exu_custom_wren,                               // Custom write enable to GPR
 
    output logic [31:0]  exu_div_result,                                // Divide result
    output logic         exu_div_wren                                   // Divide write enable to GPR
@@ -272,8 +274,10 @@ import el2_pkg::*;
 
    el2_exu_custom_ctl #(.pt(pt)) i_custom   (.*,
                           .cp                ( custom_p                       ),   // I
-                          .rs1_in            ( muldiv_rs1_d[31:0] & {32{custom_p.valid}}                    ),   // I
-                          .rs2_in            ( i0_rs2_d[31:0]     & {32{custom_p.valid}}                    )    // I
+                          .rs1_in            ( muldiv_rs1_d[31:0] & {32{custom_p.valid}}   ),   // I
+                          .rs2_in            ( i0_rs2_d[31:0]     & {32{custom_p.valid}}   ),   // I
+                          .result_o          ( exu_custom_result[31:0]                     ),   // O
+                          .finish_o          ( exu_custom_wren                             )    // O
                           ); 
 
    assign exu_i0_result_x[31:0]    =  (mul_valid_x)  ?  mul_result_x[31:0]  :  alu_result_x[31:0];

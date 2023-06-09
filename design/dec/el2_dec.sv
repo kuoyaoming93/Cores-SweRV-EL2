@@ -143,6 +143,9 @@ import el2_pkg::*;
    input logic [31:0]  exu_div_result,      // final div result
    input logic         exu_div_wren,        // Divide write enable to GPR
 
+   input logic [31:0]  exu_custom_result,   // final custom result
+   input logic         exu_custom_wren,     // Custom write enable to GPR
+
    input logic [31:0] exu_csr_rs1_x,        // rs1 for csr instruction
 
    input logic [31:0] lsu_result_m,         // load result
@@ -388,6 +391,7 @@ import el2_pkg::*;
    logic                      dec_tlu_i0_exc_valid_wb1;
 
    logic [4:0]                div_waddr_wb;
+   logic [4:0]                custom_waddr;
    logic                      dec_div_active;
 
    logic                      dec_debug_valid_d;
@@ -406,6 +410,15 @@ import el2_pkg::*;
 
    el2_dec_tlu_ctl #(.pt(pt)) tlu (.*);
 
+   logic div_custom_wren;
+   assign div_custom_wren = exu_div_wren | exu_custom_wren;
+
+   logic [31:0] div_custom_result;
+   logic [4:0] div_custom_waddr;
+   
+   assign div_custom_result = (exu_custom_wren==1'b1) ? exu_custom_result[31:0] : exu_div_result[31:0];
+
+   assign div_custom_waddr[4:0] = (exu_custom_wren==1'b1) ? custom_waddr[4:0] : div_waddr_wb[4:0];
 
    el2_dec_gpr_ctl #(.pt(pt)) arf (.*,
                     // inputs
@@ -414,7 +427,7 @@ import el2_pkg::*;
 
                     .wen0(dec_i0_wen_r),          .waddr0(dec_i0_waddr_r[4:0]),          .wd0(dec_i0_wdata_r[31:0]),
                     .wen1(dec_nonblock_load_wen), .waddr1(dec_nonblock_load_waddr[4:0]), .wd1(lsu_nonblock_load_data[31:0]),
-                    .wen2(exu_div_wren),          .waddr2(div_waddr_wb),                 .wd2(exu_div_result[31:0]),
+                    .wen2(div_custom_wren),          .waddr2(div_custom_waddr),                 .wd2(div_custom_result[31:0]),
 
                     // outputs
                     .rd0(gpr_i0_rs1_d[31:0]), .rd1(gpr_i0_rs2_d[31:0])

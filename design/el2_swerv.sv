@@ -623,6 +623,9 @@ import el2_pkg::*;
    logic [31:0] exu_div_result;
    logic exu_div_wren;
 
+   logic [31:0] exu_custom_result;
+   logic exu_custom_wren;
+
    logic dec_i0_decode_d;
 
 

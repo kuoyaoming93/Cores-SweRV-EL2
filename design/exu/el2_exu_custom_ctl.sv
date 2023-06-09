@@ -10,7 +10,9 @@ import el2_pkg::*;
 
    input el2_custom_pkt_t  cp,                      // Custom packet
    input logic  [31:0]   rs1_in,                    // RS1
-   input logic  [31:0]   rs2_in                     // RS2
+   input logic  [31:0]   rs2_in,                    // RS2
+   output logic  [31:0]   result_o,                  // Result
+   output logic           finish_o
   );
 
   logic [447:0] opa_r, opb_r;
@@ -19,10 +21,15 @@ import el2_pkg::*;
   logic load_a_inc  , load_b_inc;
   logic load_a_end  , load_b_end;
   logic opa_load    , opb_load;
+  logic op_load;
+  logic op_mul;
 
-  logic [3:0] idxa, idxb;
+  logic ffmul_finish, finish, finish_d;
+  logic [31:0] result_ff;
 
-  logic mula_en, mulb_en, mul_en;
+  logic [4:0] idxa, idxb, idxmul;
+
+  logic mul_en;
 
   assign load_a_start = cp.ffloadas;
   assign load_a_inc   = cp.ffloada;
@@ -33,8 +40,9 @@ import el2_pkg::*;
 
   assign opa_load     = load_a_start | load_a_inc | load_a_end;
   assign opb_load     = load_b_start | load_b_inc | load_b_end;
+  assign op_load      = opa_load     | opb_load;
 
-  assign mul_en       = mula_en & mulb_en;
+  assign op_mul       = cp.ffmul1    | cp.ffmul2  | cp.ffmul2;
 
   // =================================================
   // ============= Register load =====================
@@ -107,32 +115,19 @@ import el2_pkg::*;
   // =================================================
   always_ff @(posedge clk or negedge rst_l) begin
     if (!rst_l) begin
-      mula_en <= 1'b0;
+      mul_en <= 1'b0;
     end else begin
-      if (load_a_end) begin
-        mula_en <= 1'b1;
+      if (op_mul) begin
+        mul_en <= 1'b1;
       end 
       
-      if (load_a_start) begin
-        mula_en <= 1'b0;
+      if (op_load) begin
+        mul_en <= 1'b0;
       end 
     end
   end
 
-  always_ff @(posedge clk or negedge rst_l) begin
-    if (!rst_l) begin
-      mulb_en <= 1'b0;
-    end else begin
-      if (load_b_end) begin
-        mulb_en <= 1'b1;
-      end 
-      
-      if (load_b_start) begin
-        mulb_en <= 1'b0;
-      end 
-    end
-  end
-
+  logic [408:0] result;
   ffmul #(409
   ) u_ffmul (
     .clk(clk),
@@ -142,9 +137,53 @@ import el2_pkg::*;
     .poly_i ({323'b0,1'b1,86'b0}),
     .enable_i (mul_en),
 
-    .result_o (), 
+    .result_o (result), 
     .finish_o (),     
-    .finish_p_o ()    
+    .finish_p_o (ffmul_finish)    
   );
+
+  // =================================================
+  // =================== Result ======================
+  // =================================================
+  always_ff @(posedge clk or negedge rst_l) begin
+    if (!rst_l) begin
+      idxmul <= '0;
+    end else begin
+      if (op_load) begin
+        idxmul <= '0;
+      end else if (op_mul) begin
+        idxmul <= idxmul + 'b1;
+      end else begin
+        idxmul <= idxmul;
+      end
+    end
+  end
+
+  always_ff @(posedge clk or negedge rst_l) begin
+    if (!rst_l) begin
+      finish    <= 1'b0;
+      finish_d  <= 1'b0;
+    end else begin
+      if ((idxmul != 0) && op_mul) begin
+        finish <= 1'b1;
+      end else begin
+        finish <= 1'b0;
+      end
+      finish_d <= finish;
+    end
+  end
+
+  assign finish_o = finish_d | ffmul_finish;
+  assign result_o[31:0] = (idxmul<'d2) ? result[31:0] : result_ff[31:0];
+
+  always_ff @(posedge clk or negedge rst_l) begin
+    if (!rst_l) begin
+      result_ff <= '0;
+    end else begin
+      if (op_mul) begin
+        result_ff[31:0] <= result[idxmul*32 +:32];
+      end 
+    end
+  end
 
 endmodule
