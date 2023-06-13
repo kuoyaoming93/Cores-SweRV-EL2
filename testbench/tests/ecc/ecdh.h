@@ -62,7 +62,7 @@ extern "C" {
 
 /* What is the default curve to use? */
 #ifndef ECC_CURVE
- #define ECC_CURVE NIST_K193
+ #define ECC_CURVE NIST_K113
 #endif
 
 #if defined(ECC_CURVE) && (ECC_CURVE != 0)

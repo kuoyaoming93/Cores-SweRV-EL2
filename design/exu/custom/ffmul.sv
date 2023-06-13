@@ -1,18 +1,18 @@
-module ffmul #(
-  parameter WIDTH     = 409
-) (
+import ffmul_pkg::*;
+
+module ffmul (
   input  logic                clk,
   input  logic                rst_n,
-  input  logic [WIDTH-1:0]    a_i,          // I P Operand A
-  input  logic [WIDTH-1:0]    b_i,          // I P Operand B
-  input  logic [WIDTH-2:0]    poly_i,
+  input  logic [408:0]        a_i,          // I P Operand A
+  input  logic [408:0]        b_i,          // I P Operand B
   input  logic                enable_i,     // I 1 Enable
+  input  logic [1:0]          op_i,         // I 1 Opcode
 
-  output logic [WIDTH-1:0]    result_o,     // O P Result
+  output logic [408:0]        result_o,     // O P Result
   output logic                finish_o,     // O 1 Finish
   output logic                finish_p_o    // O 1 Finish
 );
-  localparam T_CYCLES = 86;
+  
 
   logic [2*WIDTH-1:0]   clmul_res;
   logic [WIDTH-1:0]     xor_stage_1;
@@ -41,6 +41,29 @@ module ffmul #(
   // ================     Shift regs      ==================
   // =======================================================
   logic [WIDTH-2:0] d_ff, q_ff;
+  logic             q_aux;
+  logic [407:0]     poly_aux;
+
+  always_comb begin
+    case (op_i)
+      FF409:  begin
+                q_aux     = q_ff[407];
+                poly_aux  = {321'b0,1'b1,86'b0};
+              end
+      FF233:  begin 
+                q_aux     = q_ff[231];
+                poly_aux  = {334'b0,1'b1,73'b0};
+              end
+      FF193:  begin 
+                q_aux     = q_ff[191];
+                poly_aux  = {393'b0,1'b1,14'b0};
+              end
+      FF113:  begin 
+                q_aux     = q_ff[111];
+                poly_aux  = {399'b0,1'b1,8'b0};
+              end
+    endcase
+  end
 
   genvar i;
   generate 
@@ -50,7 +73,18 @@ module ffmul #(
           q_ff[i] <= 1'b0;
         end else begin
           if (clmul_finish_p) begin
-            q_ff[i] <= clmul_res[WIDTH+i];
+            if          (op_i == FF409) begin
+              q_ff[i] <= clmul_res[409+i];
+            end else if (op_i == FF233) begin
+              q_ff[i] <= clmul_res[233+i];
+            end else if (op_i == FF193) begin
+              q_ff[i] <= clmul_res[193+i];
+            end else if (op_i == FF113) begin
+              q_ff[i] <= clmul_res[113+i];
+            end else begin
+              q_ff[i] <= 1'b0;
+            end
+            
           end else begin
             q_ff[i] <= d_ff[i];
           end
@@ -58,9 +92,9 @@ module ffmul #(
       end
 
       if (i==0) begin
-        assign d_ff[i] = q_ff[WIDTH-2];
+        assign d_ff[i] = q_aux;
       end else begin
-        assign d_ff[i] = (poly_i[i] & q_ff[WIDTH-2]) ^ q_ff[i-1];
+        assign d_ff[i] = (poly_aux[i] & q_aux) ^ q_ff[i-1];
       end
     end
   endgenerate
@@ -68,29 +102,83 @@ module ffmul #(
   // =======================================================
   // ============     First stage XORs     =================
   // =======================================================
+
+  logic [WIDTH-1:0]     xor_stage_1_temp;
+
+  always_comb begin
+    for (int i=0; i<WIDTH; i++) begin
+      if          (op_i == FF409) begin
+        if      (i <  408)   xor_stage_1_temp[i] = clmul_res[i] ^ clmul_res[409+i];
+        else                 xor_stage_1_temp[i] = clmul_res[i];
+      end else if (op_i == FF233) begin
+        if      (i  < 232)   xor_stage_1_temp[i] = clmul_res[i] ^ clmul_res[233+i];
+        else if (i == 232)   xor_stage_1_temp[i] = clmul_res[i];
+        else                 xor_stage_1_temp[i] = 1'b0;
+      end else if (op_i == FF193) begin
+        if      (i  < 192)   xor_stage_1_temp[i] = clmul_res[i] ^ clmul_res[193+i];
+        else if (i == 192)   xor_stage_1_temp[i] = clmul_res[i];
+        else                 xor_stage_1_temp[i] = 1'b0;
+      end else if (op_i == FF113) begin
+        if      (i  < 112)   xor_stage_1_temp[i] = clmul_res[i] ^ clmul_res[113+i];
+        else if (i == 112)   xor_stage_1_temp[i] = clmul_res[i];
+        else                 xor_stage_1_temp[i] = 1'b0;
+      end else begin
+                             xor_stage_1_temp[i] = 1'b0;
+      end
+    end
+  end
   
   generate 
-    for (i=0; i<WIDTH-1; i++) begin
-      assign xor_stage_1[i] = clmul_res[i] ^ clmul_res[WIDTH+i];
+    for (i=0; i<WIDTH; i++) begin
+      assign xor_stage_1[i] = xor_stage_1_temp[i];
     end
   endgenerate
 
-  assign xor_stage_1[WIDTH-1] = clmul_res[WIDTH-1];
 
-  assign pm[2*WIDTH-1:0] = {1'b0, q_ff[WIDTH-2:0], xor_stage_1[WIDTH-1:0]};
+  always_comb begin
+    case (op_i)
+      FF409:  pm[2*WIDTH-1:0] = {  1'b0, q_ff[407:0], xor_stage_1[408:0]};
+      FF233:  pm[2*WIDTH-1:0] = {353'b0, q_ff[231:0], xor_stage_1[232:0]};
+      FF193:  pm[2*WIDTH-1:0] = {433'b0, q_ff[191:0], xor_stage_1[192:0]};
+      FF113:  pm[2*WIDTH-1:0] = {593'b0, q_ff[111:0], xor_stage_1[112:0]};
+    endcase
+  end
 
   // =======================================================
   // ============     Second stage XORs     ================
   // =======================================================
+  logic [WIDTH-1:0]     result_temp;
+
+  always_comb begin
+    for (int i=0; i<WIDTH; i++) begin
+      if            (op_i == FF409) begin
+        if      (i  < T_CYCLES_409    )         result_temp[i] = pm[i] ^ pm[409+i];
+        else if (i == T_CYCLES_409    )         result_temp[i] = clmul_res[i];
+        else                                    result_temp[i] = pm[i] ^ pm[409+i-1];
+      end else if   (op_i == FF233) begin
+        if      (i  < T_CYCLES_233    )         result_temp[i] = pm[i] ^ pm[233+i];
+        else if (i == T_CYCLES_233    )         result_temp[i] = clmul_res[i];
+        else if (i  > T_CYCLES_233 && i  < 233) result_temp[i] = pm[i] ^ pm[233+i-1];
+        else                                    result_temp[i] = 1'b0;
+      end else if   (op_i == FF193) begin
+        if      (i  < T_CYCLES_193    )         result_temp[i] = pm[i] ^ pm[193+i];
+        else if (i == T_CYCLES_193    )         result_temp[i] = clmul_res[i];
+        else if (i  > T_CYCLES_193 && i  < 193) result_temp[i] = pm[i] ^ pm[193+i-1];
+        else                                    result_temp[i] = 1'b0;
+      end else if   (op_i == FF113) begin
+        if      (i  < T_CYCLES_113    )         result_temp[i] = pm[i] ^ pm[113+i];
+        else if (i == T_CYCLES_113    )         result_temp[i] = clmul_res[i];
+        else if (i  > T_CYCLES_113 && i  < 113) result_temp[i] = pm[i] ^ pm[113+i-1];
+        else                                    result_temp[i] = 1'b0;
+      end else begin  
+                                                result_temp[i] = '0;
+      end
+    end
+  end
+
   generate 
     for (i=0; i<WIDTH; i++) begin
-      if (i < T_CYCLES) begin
-        assign result[i] = pm[i] ^ pm[WIDTH+i];
-      end else if (i == T_CYCLES) begin
-        assign result[i] = clmul_res[i];
-      end else begin
-        assign result[i] = pm[i] ^ pm[WIDTH+i-1];
-      end
+      assign result[i] = result_temp[i];
     end
   endgenerate
 
@@ -108,16 +196,22 @@ module ffmul #(
   // ====================   Counter  =======================
   // =======================================================
 
-  assign counter_value = T_CYCLES;
+  always_comb begin
+    case (op_i)
+      FF409:  counter_value = T_CYCLES_409;
+      FF233:  counter_value = T_CYCLES_233+1;
+      FF193:  counter_value = T_CYCLES_193+1;
+      FF113:  counter_value = T_CYCLES_113+1;
+    endcase
+  end
+ 
   always_ff @(posedge clk or negedge rst_n ) begin : COUNTER
     if(!rst_n) begin
       counter   <= '0;
     end else if (!clmul_finish) begin 
       counter   <= '0;
     end else begin
-      if (!enable_i) begin
-        counter   <= '0;
-      end else begin
+      if (enable_i) begin
         if (counter < counter_value) begin
           counter <= counter + 'b1;
         end 

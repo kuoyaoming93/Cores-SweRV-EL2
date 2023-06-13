@@ -1394,10 +1394,10 @@ end : cam_array
       end else begin
          if (i0_custom_decode_d) begin
             custom_active <= 1'b1; 
-         end
-
-         if (exu_custom_wren) begin
+         end else if (exu_custom_wren) begin
             custom_active <= 1'b0; 
+         end else begin
+            custom_active <= custom_active;
          end
       end
    end
@@ -1432,7 +1432,7 @@ end : cam_array
 
 
    assign i0_div_decode_d            =  i0_legal_decode_d & i0_dp.div;
-   assign i0_custom_decode_d         =  i0_legal_decode_d & i0_dp.ffmul1;
+   assign i0_custom_decode_d         =  i0_legal_decode_d & (i0_dp.ffmul1 | i0_dp.ffmul2 | i0_dp.ffmul3 | i0_dp.ffmul4);
 
 // for load_to_use_plus1, the load result data is merged in R stage instead of D
 
