@@ -557,79 +557,79 @@ int main (){
           (   
               "ffmul1   %[z], %[x], %[y]\n\t"
               : [z] "=r" ((uint32_t)result_d[0])
-              : [x] "r" ((uint32_t)empty_r), [y] "r" ((uint32_t)empty_r)
+              : [x] "r" ((uint32_t)0), [y] "r" ((uint32_t)0)
           );          
   asm volatile
           (   
               "ffmul1   %[z], %[x], %[y]\n\t"
               : [z] "=r" ((uint32_t)result_d[1])
-              : [x] "r" ((uint32_t)empty_r), [y] "r" ((uint32_t)empty_r)
+              : [x] "r" ((uint32_t)0), [y] "r" ((uint32_t)0)
           );             
   asm volatile
           (   
               "ffmul1   %[z], %[x], %[y]\n\t"
               : [z] "=r" ((uint32_t)result_d[2])
-              : [x] "r" ((uint32_t)empty_r), [y] "r" ((uint32_t)empty_r)
+              : [x] "r" ((uint32_t)0), [y] "r" ((uint32_t)0)
           );       
   asm volatile
           (   
               "ffmul1   %[z], %[x], %[y]\n\t"
               : [z] "=r" ((uint32_t)result_d[3])
-              : [x] "r" ((uint32_t)empty_r), [y] "r" ((uint32_t)empty_r)
+              : [x] "r" ((uint32_t)0), [y] "r" ((uint32_t)0)
           );      
   asm volatile
           (   
               "ffmul1   %[z], %[x], %[y]\n\t"
               : [z] "=r" ((uint32_t)result_d[4])
-              : [x] "r" ((uint32_t)empty_r), [y] "r" ((uint32_t)empty_r)
+              : [x] "r" ((uint32_t)0), [y] "r" ((uint32_t)0)
           );   
   asm volatile
           (   
               "ffmul1   %[z], %[x], %[y]\n\t"
               : [z] "=r" ((uint32_t)result_d[5])
-              : [x] "r" ((uint32_t)empty_r), [y] "r" ((uint32_t)empty_r)
+              : [x] "r" ((uint32_t)0), [y] "r" ((uint32_t)0)
           );         
   asm volatile
           (   
               "ffmul1   %[z], %[x], %[y]\n\t"
               : [z] "=r" ((uint32_t)result_d[6])
-              : [x] "r" ((uint32_t)empty_r), [y] "r" ((uint32_t)empty_r)
+              : [x] "r" ((uint32_t)0), [y] "r" ((uint32_t)0)
           );   
   asm volatile
           (   
               "ffmul1   %[z], %[x], %[y]\n\t"
               : [z] "=r" ((uint32_t)result_d[7])
-              : [x] "r" ((uint32_t)empty_r), [y] "r" ((uint32_t)empty_r)
+              : [x] "r" ((uint32_t)0), [y] "r" ((uint32_t)0)
           );  
   asm volatile
           (   
               "ffmul1   %[z], %[x], %[y]\n\t"
               : [z] "=r" ((uint32_t)result_d[8])
-              : [x] "r" ((uint32_t)empty_r), [y] "r" ((uint32_t)empty_r)
+              : [x] "r" ((uint32_t)0), [y] "r" ((uint32_t)0)
           );   
   asm volatile
           (   
               "ffmul1   %[z], %[x], %[y]\n\t"
               : [z] "=r" ((uint32_t)result_d[9])
-              : [x] "r" ((uint32_t)empty_r), [y] "r" ((uint32_t)empty_r)
+              : [x] "r" ((uint32_t)0), [y] "r" ((uint32_t)0)
           );         
   asm volatile
           (   
               "ffmul1   %[z], %[x], %[y]\n\t"
               : [z] "=r" ((uint32_t)result_d[10])
-              : [x] "r" ((uint32_t)empty_r), [y] "r" ((uint32_t)empty_r)
+              : [x] "r" ((uint32_t)0), [y] "r" ((uint32_t)0)
           );   
   asm volatile
           (   
               "ffmul1   %[z], %[x], %[y]\n\t"
               : [z] "=r" ((uint32_t)result_d[11])
-              : [x] "r" ((uint32_t)empty_r), [y] "r" ((uint32_t)empty_r)
+              : [x] "r" ((uint32_t)0), [y] "r" ((uint32_t)0)
           );                      
   asm volatile
           (   
               "ffmul1   %[z], %[x], %[y]\n\t"
               : [z] "=r" ((uint32_t)result_d[12])
-              : [x] "r" ((uint32_t)empty_r), [y] "r" ((uint32_t)empty_r)
+              : [x] "r" ((uint32_t)0), [y] "r" ((uint32_t)0)
           );      
 #endif  
 #if (ECC_CURVE == NIST_K233)
@@ -692,49 +692,49 @@ int main (){
           (   
               "ffmul2   %[z], %[x], %[y]\n\t"
               : [z] "=r" ((uint32_t)result_d[0])
-              : [x] "r" ((uint32_t)empty_r), [y] "r" ((uint32_t)empty_r)
+              : [x] "r" ((uint32_t)0), [y] "r" ((uint32_t)0)
           );          
   asm volatile
           (   
               "ffmul2   %[z], %[x], %[y]\n\t"
               : [z] "=r" ((uint32_t)result_d[1])
-              : [x] "r" ((uint32_t)empty_r), [y] "r" ((uint32_t)empty_r)
+              : [x] "r" ((uint32_t)0), [y] "r" ((uint32_t)0)
           );             
   asm volatile
           (   
               "ffmul2   %[z], %[x], %[y]\n\t"
               : [z] "=r" ((uint32_t)result_d[2])
-              : [x] "r" ((uint32_t)empty_r), [y] "r" ((uint32_t)empty_r)
+              : [x] "r" ((uint32_t)0), [y] "r" ((uint32_t)0)
           );       
   asm volatile
           (   
               "ffmul2   %[z], %[x], %[y]\n\t"
               : [z] "=r" ((uint32_t)result_d[3])
-              : [x] "r" ((uint32_t)empty_r), [y] "r" ((uint32_t)empty_r)
+              : [x] "r" ((uint32_t)0), [y] "r" ((uint32_t)0)
           );      
   asm volatile
           (   
               "ffmul2   %[z], %[x], %[y]\n\t"
               : [z] "=r" ((uint32_t)result_d[4])
-              : [x] "r" ((uint32_t)empty_r), [y] "r" ((uint32_t)empty_r)
+              : [x] "r" ((uint32_t)0), [y] "r" ((uint32_t)0)
           );   
   asm volatile
           (   
               "ffmul2   %[z], %[x], %[y]\n\t"
               : [z] "=r" ((uint32_t)result_d[5])
-              : [x] "r" ((uint32_t)empty_r), [y] "r" ((uint32_t)empty_r)
+              : [x] "r" ((uint32_t)0), [y] "r" ((uint32_t)0)
           );         
   asm volatile
           (   
               "ffmul2   %[z], %[x], %[y]\n\t"
               : [z] "=r" ((uint32_t)result_d[6])
-              : [x] "r" ((uint32_t)empty_r), [y] "r" ((uint32_t)empty_r)
+              : [x] "r" ((uint32_t)0), [y] "r" ((uint32_t)0)
           );   
   asm volatile
           (   
               "ffmul2   %[z], %[x], %[y]\n\t"
               : [z] "=r" ((uint32_t)result_d[7])
-              : [x] "r" ((uint32_t)empty_r), [y] "r" ((uint32_t)empty_r)
+              : [x] "r" ((uint32_t)0), [y] "r" ((uint32_t)0)
           ); 
 #endif
 
@@ -798,43 +798,43 @@ int main (){
           (   
               "ffmul3   %[z], %[x], %[y]\n\t"
               : [z] "=r" ((uint32_t)result_d[0])
-              : [x] "r" ((uint32_t)empty_r), [y] "r" ((uint32_t)empty_r)
+              : [x] "r" ((uint32_t)0), [y] "r" ((uint32_t)0)
           );          
   asm volatile
           (   
               "ffmul3   %[z], %[x], %[y]\n\t"
               : [z] "=r" ((uint32_t)result_d[1])
-              : [x] "r" ((uint32_t)empty_r), [y] "r" ((uint32_t)empty_r)
+              : [x] "r" ((uint32_t)0), [y] "r" ((uint32_t)0)
           );             
   asm volatile
           (   
               "ffmul3   %[z], %[x], %[y]\n\t"
               : [z] "=r" ((uint32_t)result_d[2])
-              : [x] "r" ((uint32_t)empty_r), [y] "r" ((uint32_t)empty_r)
+              : [x] "r" ((uint32_t)0), [y] "r" ((uint32_t)0)
           );       
   asm volatile
           (   
               "ffmul3   %[z], %[x], %[y]\n\t"
               : [z] "=r" ((uint32_t)result_d[3])
-              : [x] "r" ((uint32_t)empty_r), [y] "r" ((uint32_t)empty_r)
+              : [x] "r" ((uint32_t)0), [y] "r" ((uint32_t)0)
           );      
   asm volatile
           (   
               "ffmul3   %[z], %[x], %[y]\n\t"
               : [z] "=r" ((uint32_t)result_d[4])
-              : [x] "r" ((uint32_t)empty_r), [y] "r" ((uint32_t)empty_r)
+              : [x] "r" ((uint32_t)0), [y] "r" ((uint32_t)0)
           );   
   asm volatile
           (   
               "ffmul3   %[z], %[x], %[y]\n\t"
               : [z] "=r" ((uint32_t)result_d[5])
-              : [x] "r" ((uint32_t)empty_r), [y] "r" ((uint32_t)empty_r)
+              : [x] "r" ((uint32_t)0), [y] "r" ((uint32_t)0)
           );         
   asm volatile
           (   
               "ffmul3   %[z], %[x], %[y]\n\t"
               : [z] "=r" ((uint32_t)result_d[6])
-              : [x] "r" ((uint32_t)empty_r), [y] "r" ((uint32_t)empty_r)
+              : [x] "r" ((uint32_t)0), [y] "r" ((uint32_t)0)
           );   
 #endif
 
@@ -872,25 +872,25 @@ int main (){
           (   
               "ffmul4   %[z], %[x], %[y]\n\t"
               : [z] "=r" ((uint32_t)result_d[0])
-              : [x] "r" ((uint32_t)empty_r), [y] "r" ((uint32_t)empty_r)
+              : [x] "r" ((uint32_t)0), [y] "r" ((uint32_t)0)
           );          
   asm volatile
           (   
               "ffmul4   %[z], %[x], %[y]\n\t"
               : [z] "=r" ((uint32_t)result_d[1])
-              : [x] "r" ((uint32_t)empty_r), [y] "r" ((uint32_t)empty_r)
+              : [x] "r" ((uint32_t)0), [y] "r" ((uint32_t)0)
           );             
   asm volatile
           (   
               "ffmul4   %[z], %[x], %[y]\n\t"
               : [z] "=r" ((uint32_t)result_d[2])
-              : [x] "r" ((uint32_t)empty_r), [y] "r" ((uint32_t)empty_r)
+              : [x] "r" ((uint32_t)0), [y] "r" ((uint32_t)0)
           );       
   asm volatile
           (   
               "ffmul4   %[z], %[x], %[y]\n\t"
               : [z] "=r" ((uint32_t)result_d[3])
-              : [x] "r" ((uint32_t)empty_r), [y] "r" ((uint32_t)empty_r)
+              : [x] "r" ((uint32_t)0), [y] "r" ((uint32_t)0)
           );      
 #endif
 
