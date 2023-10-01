@@ -105,7 +105,7 @@ ffmul4      rd rs1 rs2 31..25=0x3F 14..12=2 6..2=0x2 1..0=3
 
 Once followed previous steps to install the GNU toolchain, verilator, and the steps to add custom instructions, the next step is to run the ECC example.
 
-1. The C compilation flags are located at `testbench/tests/ecc/ecc.mki`.
+1. C compilation flags are located at `testbench/tests/ecc/ecc.mki`.
 2. To select different ECC curves, modify `testbench/tests/ecc/ecdh.h` with the corresponding ECC curve. The options can be `NIST_K113`, `NIST_K193`, `NIST_K233`, `NIST_K409`
 
 ```c
