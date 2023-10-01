@@ -896,8 +896,8 @@ int main (){
 
   time2 = get_mcycle();
 
-  for (int i=0;i<13;i++)
-    printf("%x\n\r", result_d[i]);
+  //for (int i=0;i<13;i++)
+  //  printf("%x\n\r", result_d[i]);
 
   printf("SUCCESS! \t %d cycles\n",time2-time1);                                                          
 }

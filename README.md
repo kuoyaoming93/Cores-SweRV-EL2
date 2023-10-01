@@ -40,6 +40,106 @@ installed so that it can be used to prepare RISCV binaries to run.
 1. Determine your configuration {optional}
 1. Run make with tools/Makefile
 
+### Customizing RISC-V GNU Toolchain with trinomial instructions
+
+1. Clone the [RISC-V GNU toolchain repository](https://github.com/riscv/riscv-gnu-toolchain.git) and follow the instructions to install the toolchain. GCC version used was `riscv64-unknown-elf-gcc (g2ee5e430018) 12.2.0`.
+2. Build the toolchain.
+3. Clone [RISC-V opcodes repository](https://github.com/riscv/riscv-opcodes.git) and create the encoding based on custom instruction format. For example:
+
+```bash
+ffloadas    rd rs1 rs2 31..25=0    14..12=0 6..2=0x2 1..0=3
+ffloada     rd rs1 rs2 31..25=1    14..12=0 6..2=0x2 1..0=3
+ffloadae    rd rs1 rs2 31..25=2    14..12=0 6..2=0x2 1..0=3
+ffloadbs    rd rs1 rs2 31..25=0    14..12=1 6..2=0x2 1..0=3
+ffloadb     rd rs1 rs2 31..25=1    14..12=1 6..2=0x2 1..0=3
+ffloadbe    rd rs1 rs2 31..25=2    14..12=1 6..2=0x2 1..0=3
+ffmul1      rd rs1 rs2 31..25=0xF  14..12=2 6..2=0x2 1..0=3
+ffmul2      rd rs1 rs2 31..25=0x1F 14..12=2 6..2=0x2 1..0=3
+ffmul3      rd rs1 rs2 31..25=0x2F 14..12=2 6..2=0x2 1..0=3
+ffmul4      rd rs1 rs2 31..25=0x3F 14..12=2 6..2=0x2 1..0=3
+```
+4. Modify [riscv-opc.c](https://github.com/riscv/riscv-binutils-gdb/blob/riscv-binutils-2.36.1/opcodes/riscv-opc.c) and [riscv-opc.h](https://github.com/riscv/riscv-binutils-gdb/blob/riscv-binutils-2.36.1/include/opcode/riscv-opc.h) files (RISC-V GNU toolchain step 1) for binutils and gdb with the encoding built in step 3.  
+
+   
+    - Add the following lines in the define section of **riscv-opc.h**. 
+    ```c
+        #define MATCH_FFLOADA 0x200000b
+        #define MASK_FFLOADA 0xfe00707f
+        #define MATCH_FFLOADAE 0x400000b
+        #define MASK_FFLOADAE 0xfe00707f
+        #define MATCH_FFLOADAS 0xb
+        #define MASK_FFLOADAS 0xfe00707f
+        #define MATCH_FFLOADB 0x200100b
+        #define MASK_FFLOADB 0xfe00707f
+        #define MATCH_FFLOADBE 0x400100b
+        #define MASK_FFLOADBE 0xfe00707f
+        #define MATCH_FFLOADBS 0x100b
+        #define MASK_FFLOADBS 0xfe00707f
+        #define MATCH_FFMUL1 0x1e00200b
+        #define MASK_FFMUL1 0xfe00707f
+        #define MATCH_FFMUL2 0x3e00200b
+        #define MASK_FFMUL2 0xfe00707f
+        #define MATCH_FFMUL3 0x5e00200b
+        #define MASK_FFMUL3 0xfe00707f
+        #define MATCH_FFMUL4 0x7e00200b
+        #define MASK_FFMUL4 0xfe00707f
+    ```
+    - Add the following riscv_opcodes struct inside **riscv-opc.c**
+    ```c
+        {"ffloada",       0, INSN_CLASS_I,   "d,s,t",  MATCH_FFLOADA, MASK_FFLOADA, match_opcode, 0 },
+        {"ffloadae",       0, INSN_CLASS_I,   "d,s,t",  MATCH_FFLOADAE, MASK_FFLOADAE, match_opcode, 0 },
+        {"ffloadas",       0, INSN_CLASS_I,   "d,s,t",  MATCH_FFLOADAS, MASK_FFLOADAS, match_opcode, 0 },
+        {"ffloadb",       0, INSN_CLASS_I,   "d,s,t",  MATCH_FFLOADB, MASK_FFLOADB, match_opcode, 0 },
+        {"ffloadbe",       0, INSN_CLASS_I,   "d,s,t",  MATCH_FFLOADBE, MASK_FFLOADBE, match_opcode, 0 },
+        {"ffloadbs",       0, INSN_CLASS_I,   "d,s,t",  MATCH_FFLOADBS, MASK_FFLOADBS, match_opcode, 0 },
+        {"ffmul1",       0, INSN_CLASS_I,   "d,s,t",  MATCH_FFMUL1, MASK_FFMUL1, match_opcode, 0 },
+        {"ffmul2",       0, INSN_CLASS_I,   "d,s,t",  MATCH_FFMUL2, MASK_FFMUL2, match_opcode, 0 },
+        {"ffmul3",       0, INSN_CLASS_I,   "d,s,t",  MATCH_FFMUL3, MASK_FFMUL3, match_opcode, 0 },
+        {"ffmul4",       0, INSN_CLASS_I,   "d,s,t",  MATCH_FFMUL4, MASK_FFMUL4, match_opcode, 0 },
+    ```
+  
+5. make && make install (inside the binutils and/or gdb build directory) to build the GNU toolchain.
+6. For more details, please refer to [Kuo's Ph.D. Thesis](https://biblioteca.nebrija.es/cgi-bin/repositorio/O8402/ID413d757f?ACC=161).
+
+### ECC C code example (with custom instructions)
+
+Once followed previous steps to install the GNU toolchain, verilator, and the steps to add custom instructions, the next step is to run the ECC example.
+
+1. The C compilation flags are located at `testbench/tests/ecc/ecc.mki`.
+2. To select different ECC curves, modify `testbench/tests/ecc/ecdh.h` with the corresponding ECC curve. The options can be `NIST_K113`, `NIST_K193`, `NIST_K233`, `NIST_K409`
+
+```c
+#ifndef ECC_CURVE
+ #define ECC_CURVE NIST_K113
+#endif
+```
+3. To run the test:
+
+```bash
+cd work/
+make TEST=ecc
+```
+
+Output for `NIST_K113`: 
+
+```bash
+./obj_dir/Vtb_top
+
+VerilatorTB: Start of sim
+
+DCCM pre-load from f0040000 to f0041150
+Starting a GF(2^113) multiplication in C code... 
+SUCCESS!         219 cycles
+TEST_PASSED
+
+Finished : minstret = 2873, mcycle = 4759
+See "exec.log" for execution trace with register updates..
+
+- /home/kuo/gits/Cores-SweRV-EL2/testbench/tb_top.sv:342: Verilog $finish
+
+VerilatorTB: End of sim
+```
+
 ## Release Notes for this version
 Please see [release notes](release-notes.md) for changes and bug fixes in this version of SweRV
 
