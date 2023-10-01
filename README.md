@@ -99,7 +99,7 @@ ffmul4      rd rs1 rs2 31..25=0x3F 14..12=2 6..2=0x2 1..0=3
     ```
   
 5. make && make install (inside the binutils and/or gdb build directory) to build the GNU toolchain.
-6. For more details, please refer to [Kuo's Ph.D. Thesis](https://biblioteca.nebrija.es/cgi-bin/repositorio/O8402/ID413d757f?ACC=161).
+6. For more details, please refer to [Kuo's Ph.D. Thesis](https://biblioteca.nebrija.es/cgi-bin/repositorio?TITN=132519).
 
 ### ECC C code example (with custom instructions)
 
