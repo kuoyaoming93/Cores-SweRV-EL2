@@ -2,6 +2,9 @@
 
 This repository contains the EL2 RISC-V SweRV Core<sup>TM</sup>  design RTL
 
+![arch](https://github.com/kuoyaoming93/Cores-SweRV-EL2/assets/18518739/9db76658-bd19-448d-a5b1-83297e23599c)
+
+
 ## License
 
 By contributing to this project, you agree that your contribution is governed by [Apache-2.0](LICENSE).  
